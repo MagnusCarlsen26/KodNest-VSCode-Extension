@@ -38,17 +38,52 @@ const vscode = __importStar(require("vscode"));
 class ProblemProvider {
     onDidChangeTreeDataEmitter = new vscode.EventEmitter();
     onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
-    problems = [
-        { id: 'KN-001', title: 'Two Sum', difficulty: 'Easy' },
-        { id: 'KN-002', title: 'Reverse Linked List', difficulty: 'Medium' },
-        { id: 'KN-003', title: 'LRU Cache', difficulty: 'Hard' }
-    ];
+    problems = [];
+    constructor() { }
+    async loadProblems(extensionPath) {
+        const fs = await import('fs');
+        const path = await import('path');
+        const problemsPath = path.join(extensionPath, 'database', 'allQuestionDescriptions.json');
+        const rawData = fs.readFileSync(problemsPath, 'utf-8');
+        const jsonData = JSON.parse(rawData);
+        this.problems = jsonData.flatMap((moduleData) => {
+            const problemsForModule = [];
+            for (const sectionId in moduleData.sections) {
+                const section = moduleData.sections[sectionId];
+                for (const problemId in section) {
+                    const item = section[problemId];
+                    problemsForModule.push({
+                        id: item.id,
+                        title: item.title,
+                        difficulty: item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1),
+                        status: item.status,
+                        topic: item.tags && item.tags.length > 0 ? item.tags[0] : undefined, // Assuming topic is the first tag
+                        sectionId: sectionId,
+                        moduleName: moduleData.module.name,
+                        moduleDescription: moduleData.module.description,
+                        moduleDifficulty: moduleData.module.difficulty,
+                        moduleCategoryTitle: moduleData.module.category.title,
+                        content_markdown: item.description,
+                    });
+                }
+            }
+            return problemsForModule;
+        });
+        this.refresh();
+    }
     refresh() {
         this.onDidChangeTreeDataEmitter.fire();
     }
     getTreeItem(problem) {
         const item = new vscode.TreeItem(problem.title, vscode.TreeItemCollapsibleState.None);
-        item.description = `${problem.difficulty}`;
+        let descriptionParts = [];
+        if (problem.difficulty) {
+            descriptionParts.push(problem.difficulty);
+        }
+        if (problem.status) {
+            descriptionParts.push(problem.status);
+        }
+        item.description = descriptionParts.join(' | ');
         item.command = {
             command: 'kodnest.openProblem',
             title: 'Open Problem',

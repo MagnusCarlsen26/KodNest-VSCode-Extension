@@ -9,6 +9,7 @@ import { normalizeToProblemMeta, parseProblemFromActiveEditor, createEditorForPr
 export function activate(context: vscode.ExtensionContext) {
   const problemProvider = new ProblemProvider();
   vscode.window.registerTreeDataProvider('kodnestProblems', problemProvider);
+  problemProvider.loadProblems(context.extensionPath);
 
   registerCommand(context, COMMAND.REFRESH_PROBLEMS, () => {
     problemProvider.refresh();

@@ -128,17 +128,37 @@ export class ProblemDescriptionPanel {
 <style>
   body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); }
   h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
-  .meta { color: var(--vscode-descriptionForeground); margin-bottom: 12px; }
+  .meta { color: var(--vscode-descriptionForeground); margin-bottom: 12px; line-height: 1.5; }
+  .difficulty-Easy { color: #6bb341; } /* Green */
+  .difficulty-Medium { color: #d49a00; } /* Yellow */
+  .difficulty-Hard { color: #e44258; } /* Red */
   .controls { margin-bottom: 12px; display:flex; gap:8px; flex-wrap:wrap; }
-  button { padding:6px 10px; border-radius:6px; border: 1px solid var(--vscode-button-border); background: var(--vscode-button-background); color: var(--vscode-button-foreground); cursor:pointer; }
+  button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.2s ease;
+  }
+  button:hover { background: var(--vscode-button-hoverBackground); }
   .sample { border:1px dashed var(--vscode-editorGutter-background); padding: 10px; margin-bottom:8px; border-radius:6px; }
   .content img { max-width:100%; height:auto; }
   pre { background: rgba(0,0,0,0.06); padding:8px; border-radius:6px; overflow:auto; }
+  .samples-container { margin-top: 20px; }
+  .sample-case { background: var(--vscode-editorGroup-background); padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--vscode-editorGroup-border); }
+  .sample-case h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
+  .sample-case pre { background: var(--vscode-textArea-background); padding: 10px; border-radius: 4px; }
 </style>
 </head>
 <body>
-  <h1>${escapeHtml(this._problem.title)} <small style="opacity:.7">(${escapeHtml(this._problem.id)})</small></h1>
-  <div class="meta">Difficulty: <strong>${escapeHtml(String(this._problem.difficulty || 'Unknown'))}</strong></div>
+  <h1>${escapeHtml(this._problem.title)}</h1>
+  <div class="meta">
+    Difficulty: <strong class="difficulty-${this._problem.difficulty}">${escapeHtml(String(this._problem.difficulty || 'Unknown'))}</strong>
+    ${this._problem.status ? ` | Status: <strong>${escapeHtml(this._problem.status)}</strong>` : ''}
+  </div>
 
   <div class="controls">
     <button id="open">Open in Editor</button>
@@ -147,6 +167,20 @@ export class ProblemDescriptionPanel {
   </div>
 
   <div class="content">${contentHtml}</div>
+
+  ${samples.length > 0 ? `
+    <div class="samples-container">
+      <h2>Sample Test Cases</h2>
+      ${samples.map((s, i) => `
+        <div class="sample-case">
+          <h3>Sample ${i + 1}</h3>
+          <p><strong>Input:</strong></p>
+          <pre>${escapeHtml(s.input)}</pre>
+          ${s.output ? `<p><strong>Output:</strong></p><pre>${escapeHtml(s.output)}</pre>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  ` : ''}
 
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
