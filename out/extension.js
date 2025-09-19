@@ -39,27 +39,28 @@ const vscode = __importStar(require("vscode"));
 const problemProvider_1 = require("./problemProvider");
 const codeLensProvider_1 = require("./codeLensProvider");
 const descriptionPanel_1 = require("./descriptionPanel");
-const problemService_1 = require("./services/problemService");
+const commands_1 = require("./utils/commands");
+const problem_1 = require("./utils/problem");
 function activate(context) {
     const problemProvider = new problemProvider_1.ProblemProvider();
     vscode.window.registerTreeDataProvider('kodnestProblems', problemProvider);
-    (0, problemService_1.registerCommand)(context, problemService_1.COMMAND.REFRESH_PROBLEMS, () => {
+    (0, commands_1.registerCommand)(context, commands_1.COMMAND.REFRESH_PROBLEMS, () => {
         problemProvider.refresh();
     });
-    (0, problemService_1.registerCommand)(context, problemService_1.COMMAND.OPEN_PROBLEM, (problemLike) => {
-        const meta = (0, problemService_1.normalizeToProblemMeta)(problemLike);
+    (0, commands_1.registerCommand)(context, commands_1.COMMAND.OPEN_PROBLEM, (problemLike) => {
+        const meta = (0, problem_1.normalizeToProblemMeta)(problemLike);
         descriptionPanel_1.ProblemDescriptionPanel.createOrShow(context.extensionUri, meta);
     });
     const codeLensProvider = new codeLensProvider_1.KodnestCodeLensProvider();
     context.subscriptions.push(vscode.languages.registerCodeLensProvider({ scheme: 'file', language: 'javascript' }, codeLensProvider));
-    (0, problemService_1.registerCommand)(context, problemService_1.COMMAND.SHOW_DESCRIPTION, (docOrProblem) => {
+    (0, commands_1.registerCommand)(context, commands_1.COMMAND.SHOW_DESCRIPTION, (docOrProblem) => {
         let problem;
         const asAny = docOrProblem;
         if (asAny?.id && asAny?.title) {
             problem = asAny;
         }
         else {
-            problem = (0, problemService_1.parseProblemFromActiveEditor)();
+            problem = (0, problem_1.parseProblemFromActiveEditor)();
         }
         if (!problem) {
             vscode.window.showErrorMessage('No problem context found to show description for.');
@@ -67,7 +68,7 @@ function activate(context) {
         }
         descriptionPanel_1.ProblemDescriptionPanel.createOrShow(context.extensionUri, problem);
     });
-    (0, problemService_1.registerCommand)(context, problemService_1.COMMAND.RUN, async (payload) => {
+    (0, commands_1.registerCommand)(context, commands_1.COMMAND.RUN, async (payload) => {
         const maybePayload = payload;
         if (maybePayload && typeof maybePayload === 'object' && 'problem' in maybePayload && maybePayload.problem) {
             const idx = Number(maybePayload.sampleIndex ?? 0);
@@ -81,15 +82,15 @@ function activate(context) {
         }
         vscode.window.showInformationMessage(`Running ${editor.document.fileName} (no sample).`);
     });
-    (0, problemService_1.registerCommand)(context, problemService_1.COMMAND.SUBMIT, (doc) => {
+    (0, commands_1.registerCommand)(context, commands_1.COMMAND.SUBMIT, (doc) => {
         vscode.window.showInformationMessage(`Submitting ${doc.fileName}...`);
     });
-    (0, problemService_1.registerCommand)(context, problemService_1.COMMAND.CREATE_EDITOR, async (problem) => {
+    (0, commands_1.registerCommand)(context, commands_1.COMMAND.CREATE_EDITOR, async (problem) => {
         if (!problem) {
             vscode.window.showErrorMessage('No problem data provided to create editor.');
             return;
         }
-        await (0, problemService_1.createEditorForProblem)(context, problem);
+        await (0, problem_1.createEditorForProblem)(context, problem);
     });
 }
 // This method is called when your extension is deactivated

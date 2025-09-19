@@ -3,7 +3,8 @@ import { ProblemProvider } from './problemProvider';
 import { KodnestCodeLensProvider } from './codeLensProvider';
 import { ProblemDescriptionPanel } from './descriptionPanel';
 import { ProblemMeta, RunPayload } from './types';
-import { COMMAND, registerCommand, normalizeToProblemMeta, parseProblemFromActiveEditor, createEditorForProblem } from './services/problemService';
+import { COMMAND, registerCommand } from './utils/commands';
+import { normalizeToProblemMeta, parseProblemFromActiveEditor, createEditorForProblem } from './utils/problem';
 
 export function activate(context: vscode.ExtensionContext) {
   const problemProvider = new ProblemProvider();
