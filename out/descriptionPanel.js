@@ -32,14 +32,16 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProblemDescriptionPanel = void 0;
 const vscode = __importStar(require("vscode"));
-const marked_1 = require("marked");
-const sanitize_html_1 = __importDefault(require("sanitize-html"));
+// Use dynamic import wrappers to avoid ESM/CJS interop issues under Node16 module resolution
+// while keeping the call sites typed.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { marked } = require('marked');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sanitizeHtml = require('sanitize-html');
+const utils_1 = require("./utils");
 class ProblemDescriptionPanel {
     static currentPanel;
     _panel;
@@ -113,11 +115,11 @@ class ProblemDescriptionPanel {
         const webview = this._panel.webview;
         // convert markdown to sanitized HTML
         const rawMd = this._problem.content_markdown || `# ${this._problem.title}\n\n(No description provided)`;
-        const html = (0, marked_1.marked)(rawMd);
-        const safe = (0, sanitize_html_1.default)(html, {
-            allowedTags: sanitize_html_1.default.defaults.allowedTags.concat(['img']),
+        const html = marked(rawMd);
+        const safe = sanitizeHtml(html, {
+            allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
             allowedAttributes: {
-                ...sanitize_html_1.default.defaults.allowedAttributes,
+                ...sanitizeHtml.defaults.allowedAttributes,
                 img: ['src', 'alt', 'title', 'width', 'height']
             }
         });
@@ -125,7 +127,7 @@ class ProblemDescriptionPanel {
     }
     _getHtmlForWebview(webview, contentHtml) {
         // Use a nonce to whitelist scripts
-        const nonce = getNonce();
+        const nonce = (0, utils_1.getNonce)();
         const samples = this._problem.samples || [];
         return `<!doctype html>
 <html lang="en">
@@ -133,7 +135,7 @@ class ProblemDescriptionPanel {
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${escapeHtml(this._problem.title)}</title>
+<title>${(0, utils_1.escapeHtml)(this._problem.title)}</title>
 <style>
   body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); }
   h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
@@ -146,8 +148,8 @@ class ProblemDescriptionPanel {
 </style>
 </head>
 <body>
-  <h1>${escapeHtml(this._problem.title)} <small style="opacity:.7">(${escapeHtml(this._problem.id)})</small></h1>
-  <div class="meta">Difficulty: <strong>${escapeHtml(String(this._problem.difficulty || 'Unknown'))}</strong></div>
+  <h1>${(0, utils_1.escapeHtml)(this._problem.title)} <small style="opacity:.7">(${(0, utils_1.escapeHtml)(this._problem.id)})</small></h1>
+  <div class="meta">Difficulty: <strong>${(0, utils_1.escapeHtml)(String(this._problem.difficulty || 'Unknown'))}</strong></div>
 
   <div class="controls">
     <button id="open">Open in Editor</button>
@@ -177,14 +179,4 @@ class ProblemDescriptionPanel {
     }
 }
 exports.ProblemDescriptionPanel = ProblemDescriptionPanel;
-function escapeHtml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-function getNonce() {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    return text;
-}
 //# sourceMappingURL=descriptionPanel.js.map

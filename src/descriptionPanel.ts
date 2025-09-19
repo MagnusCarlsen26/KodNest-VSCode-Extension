@@ -1,14 +1,12 @@
 import * as vscode from 'vscode';
-import { marked } from 'marked';
-import sanitizeHtml from 'sanitize-html';
-
-export interface ProblemMeta {
-  id: string;
-  title: string;
-  difficulty?: string;
-  content_markdown?: string; // markdown body
-  samples?: { input: string; output?: string }[];
-}
+// Use dynamic import wrappers to avoid ESM/CJS interop issues under Node16 module resolution
+// while keeping the call sites typed.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { marked } = require('marked');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const sanitizeHtml: any = require('sanitize-html');
+import { ProblemMeta } from './types';
+import { escapeHtml, getNonce } from './utils';
 
 export class ProblemDescriptionPanel {
   public static currentPanel: ProblemDescriptionPanel | undefined;
@@ -32,7 +30,7 @@ export class ProblemDescriptionPanel {
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
   }
 
-  public static createOrShow(extensionUri: vscode.Uri, problem: ProblemMeta) {
+  public static createOrShow(extensionUri: vscode.Uri, problem: ProblemMeta): void {
     const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
     // If we already have a panel, reveal it
@@ -56,13 +54,13 @@ export class ProblemDescriptionPanel {
     ProblemDescriptionPanel.currentPanel = new ProblemDescriptionPanel(panel, extensionUri, problem);
   }
 
-  public updateProblem(problem: ProblemMeta) {
+  public updateProblem(problem: ProblemMeta): void {
     this._problem = problem;
     this._panel.title = `${problem.id} — ${problem.title}`;
     this._update();
   }
 
-  public dispose() {
+  public dispose(): void {
     ProblemDescriptionPanel.currentPanel = undefined;
 
     // Clean up
@@ -74,7 +72,7 @@ export class ProblemDescriptionPanel {
     }
   }
 
-  private _handleMessage(msg: any) {
+  private _handleMessage(msg: any): void {
     // messages from webview
     switch (msg.command) {
       case 'runSample':
@@ -98,7 +96,7 @@ export class ProblemDescriptionPanel {
     return header + stub;
   }
 
-  private _update() {
+  private _update(): void {
     const webview = this._panel.webview;
 
     // convert markdown to sanitized HTML
@@ -115,7 +113,7 @@ export class ProblemDescriptionPanel {
     this._panel.webview.html = this._getHtmlForWebview(webview, safe);
   }
 
-  private _getHtmlForWebview(webview: vscode.Webview, contentHtml: string) {
+  private _getHtmlForWebview(webview: vscode.Webview, contentHtml: string): string {
     // Use a nonce to whitelist scripts
     const nonce = getNonce();
     const samples = this._problem.samples || [];
@@ -168,15 +166,4 @@ export class ProblemDescriptionPanel {
 </body>
 </html>`;
   }
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function getNonce() {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-  return text;
 }

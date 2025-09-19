@@ -36,15 +36,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProblemProvider = void 0;
 const vscode = __importStar(require("vscode"));
 class ProblemProvider {
-    _onDidChangeTreeData = new vscode.EventEmitter();
-    onDidChangeTreeData = this._onDidChangeTreeData.event;
+    onDidChangeTreeDataEmitter = new vscode.EventEmitter();
+    onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
     problems = [
         { id: 'KN-001', title: 'Two Sum', difficulty: 'Easy' },
         { id: 'KN-002', title: 'Reverse Linked List', difficulty: 'Medium' },
         { id: 'KN-003', title: 'LRU Cache', difficulty: 'Hard' }
     ];
     refresh() {
-        this._onDidChangeTreeData.fire();
+        this.onDidChangeTreeDataEmitter.fire();
     }
     getTreeItem(problem) {
         const item = new vscode.TreeItem(problem.title, vscode.TreeItemCollapsibleState.None);

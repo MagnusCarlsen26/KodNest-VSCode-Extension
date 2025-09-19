@@ -1,17 +1,12 @@
 import * as vscode from 'vscode';
-
-export interface Problem {
-    id: string;
-    title: string;
-    difficulty: 'Easy' | 'Medium' | 'Hard';
-}
+import { Problem } from './types';
 
 export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
     
-    private _onDidChangeTreeData: vscode.EventEmitter<Problem | undefined | void> =
+    private onDidChangeTreeDataEmitter: vscode.EventEmitter<Problem | undefined | void> =
         new vscode.EventEmitter<Problem | undefined | void>();
     readonly onDidChangeTreeData: vscode.Event<Problem | undefined | void> =
-        this._onDidChangeTreeData.event;
+        this.onDidChangeTreeDataEmitter.event;
 
     private problems: Problem[] = [
         { id: 'KN-001', title: 'Two Sum', difficulty: 'Easy' },
@@ -20,7 +15,7 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
     ];
 
     refresh(): void {
-        this._onDidChangeTreeData.fire();
+        this.onDidChangeTreeDataEmitter.fire();
     }
 
     getTreeItem(problem: Problem): vscode.TreeItem {
