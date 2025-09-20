@@ -118,7 +118,74 @@ export class ProblemDescriptionPanel {
     const nonce = getNonce();
     const samples = this._problem.samples || [];
 
-    return `<!doctype html>
+    try {
+      // Read the HTML template
+      const fs = require('fs');
+      const path = require('path');
+      const templatePath = path.join(__dirname, 'templates', 'description.html');
+      let html = fs.readFileSync(templatePath, 'utf-8');
+
+      // Replace placeholders
+      html = html.replace(/{{nonce}}/g, nonce);
+      html = html.replace(/{{title}}/g, escapeHtml(this._problem.title));
+      html = html.replace(/{{difficulty}}/g, escapeHtml(String(this._problem.difficulty || 'Unknown')));
+      html = html.replace(/{{status_meta}}/g,
+        this._problem.status ? ` | Status: <strong>${escapeHtml(this._problem.status)}</strong>` : ''
+      );
+
+      // Generate sample buttons
+      const sampleButtons = samples.map((s, i) =>
+        `<button class="run-sample" data-idx="${i}">Run Sample ${i+1}</button>`
+      ).join('');
+
+      // Generate samples section
+      const samplesSection = samples.length > 0 ? `
+        <div class="samples-container">
+          <h2>Sample Test Cases</h2>
+          ${samples.map((s, i) => `
+            <div class="sample-case">
+              <h3>Sample ${i + 1}</h3>
+              <p><strong>Input:</strong></p>
+              <pre>${escapeHtml(s.input)}</pre>
+              ${s.output ? `<p><strong>Output:</strong></p><pre>${escapeHtml(s.output)}</pre>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
+
+      // Replace content placeholders
+      html = html.replace(/{{sample_buttons}}/g, sampleButtons);
+      html = html.replace(/{{samples_section}}/g, samplesSection);
+
+      // Replace content
+      html = html.replace(/{{content}}/g, contentHtml);
+
+      return html;
+    } catch (error) {
+      // Fallback to inline HTML if template file is not found
+      console.warn('Template file not found, using inline HTML:', error);
+
+      // Generate sample buttons for fallback
+      const fallbackSampleButtons = samples.map((s, i) =>
+        `<button class="run-sample" data-idx="${i}">Run Sample ${i+1}</button>`
+      ).join('');
+
+      // Generate samples section for fallback
+      const fallbackSamplesSection = samples.length > 0 ? `
+        <div class="samples-container">
+          <h2>Sample Test Cases</h2>
+          ${samples.map((s, i) => `
+            <div class="sample-case">
+              <h3>Sample ${i + 1}</h3>
+              <p><strong>Input:</strong></p>
+              <pre>${escapeHtml(s.input)}</pre>
+              ${s.output ? `<p><strong>Output:</strong></p><pre>${escapeHtml(s.output)}</pre>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
+
+      return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -129,9 +196,9 @@ export class ProblemDescriptionPanel {
   body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); }
   h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
   .meta { color: var(--vscode-descriptionForeground); margin-bottom: 12px; line-height: 1.5; }
-  .difficulty-Easy { color: #6bb341; } /* Green */
-  .difficulty-Medium { color: #d49a00; } /* Yellow */
-  .difficulty-Hard { color: #e44258; } /* Red */
+  .difficulty-Easy { color: #6bb341; }
+  .difficulty-Medium { color: #d49a00; }
+  .difficulty-Hard { color: #e44258; }
   .controls { margin-bottom: 12px; display:flex; gap:8px; flex-wrap:wrap; }
   button {
     padding: 8px 16px;
@@ -163,24 +230,12 @@ export class ProblemDescriptionPanel {
   <div class="controls">
     <button id="open">Open in Editor</button>
     <button id="copy">Copy Template</button>
-    ${samples.map((s, i) => `<button class="run-sample" data-idx="${i}">Run Sample ${i+1}</button>`).join('')}
+    ${fallbackSampleButtons}
   </div>
 
   <div class="content">${contentHtml}</div>
 
-  ${samples.length > 0 ? `
-    <div class="samples-container">
-      <h2>Sample Test Cases</h2>
-      ${samples.map((s, i) => `
-        <div class="sample-case">
-          <h3>Sample ${i + 1}</h3>
-          <p><strong>Input:</strong></p>
-          <pre>${escapeHtml(s.input)}</pre>
-          ${s.output ? `<p><strong>Output:</strong></p><pre>${escapeHtml(s.output)}</pre>` : ''}
-        </div>
-      `).join('')}
-    </div>
-  ` : ''}
+  ${fallbackSamplesSection}
 
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
@@ -199,5 +254,6 @@ export class ProblemDescriptionPanel {
   </script>
 </body>
 </html>`;
+    }
   }
 }

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; script-src 'nonce-{{nonce}}';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kodnest Problems</title>
+  <style>
+    body { font-family: var(--vscode-font-family); color: var(--vscode-foreground); background: var(--vscode-sideBar-background); }
+    .container { padding: 8px; }
+    .controls { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+    input[type="search"] { flex:1; padding:6px 8px; border-radius:4px; border:1px solid var(--vscode-input-border); background: var(--vscode-input-background); color: var(--vscode-input-foreground); }
+    button { padding:6px 10px; border-radius:4px; border:none; background: var(--vscode-button-background); color: var(--vscode-button-foreground); cursor:pointer; }
+    button:hover { background: var(--vscode-button-hoverBackground); }
+    .module { margin-bottom: 16px; }
+    .module-header {
+      padding: 8px 12px;
+      padding-left: 24px;
+      background: var(--vscode-editorGroupHeader-tabsBackground);
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--vscode-editorGroup-border);
+      position: relative;
+      user-select: none;
+    }
+    .module-arrow {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      color: var(--vscode-foreground);
+      opacity: 0.7;
+      font-family: monospace;
+    }
+    .module-title {
+      font-weight: 600;
+      font-size: 1.1em;
+      margin-left: 16px;
+    }
+    .module-difficulty-Easy .module-title {
+      color: #6bb341;
+    }
+    .module-difficulty-Easy .module-header:hover .module-title {
+      color: #8bc34a;
+    }
+    .module-difficulty-Medium .module-title {
+      color: #d49a00;
+    }
+    .module-difficulty-Medium .module-header:hover .module-title {
+      color: #ffb300;
+    }
+    .module-difficulty-Hard .module-title {
+      color: #e44258;
+    }
+    .module-difficulty-Hard .module-header:hover .module-title {
+      color: #f44336;
+    }
+    .module-difficulty-INTERMEDIATE .module-title {
+      color: #d49a00;
+    }
+    .module-difficulty-INTERMEDIATE .module-header:hover .module-title {
+      color: #ffb300;
+    }
+    .module-difficulty-Beginner .module-title {
+      color: #6bb341;
+    }
+    .module-difficulty-Beginner .module-header:hover .module-title {
+      color: #8bc34a;
+    }
+    .module-difficulty-Advanced .module-title {
+      color: #e44258;
+    }
+    .module-difficulty-Advanced .module-header:hover .module-title {
+      color: #f44336;
+    }
+    .module-meta {
+      font-size: 0.85em;
+      color: var(--vscode-descriptionForeground);
+      margin-top: 4px;
+      margin-left: 16px;
+    }
+    .problems-list {
+      margin-top: 8px;
+      padding-left: 16px;
+    }
+    .item {
+      padding: 8px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border: 1px solid var(--vscode-editorGroup-border);
+      background: var(--vscode-editor-background);
+      cursor: pointer;
+    }
+    .title { font-weight: 600; }
+    .meta {
+      font-size: 0.85em;
+      color: var(--vscode-descriptionForeground);
+      margin-top: 2px;
+    }
+    .difficulty-Easy { color: #6bb341; }
+    .difficulty-Medium { color: #d49a00; }
+    .difficulty-Hard { color: #e44258; }
+    .empty { color: var(--vscode-descriptionForeground); text-align: center; padding: 12px; }
+    .collapsed .problems-list { display: none; }
+  </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls">
+        <input id="search" type="search" placeholder="Search by title, id or topic" value="{{query}}" />
+        <button id="refresh">Refresh</button>
+      </div>
+      <div id="list">
+        {{modules_content}}
+        {{empty_message}}
+      </div>
+    </div>
+    <script nonce="{{nonce}}">
+      const vscode = acquireVsCodeApi();
+
+      function toggleModule(moduleId) {
+        const moduleElement = document.querySelector(`[data-module-id="${moduleId}"]`);
+        if (moduleElement) {
+          const isCollapsed = moduleElement.classList.toggle('collapsed');
+          // Update the arrow indicator
+          const arrow = moduleElement.querySelector('.module-arrow');
+          if (arrow) {
+            arrow.textContent = isCollapsed ? '▶' : '▼';
+          }
+          console.log('Toggled module:', moduleId, 'collapsed:', isCollapsed);
+        } else {
+          console.log('Module element not found for id:', moduleId);
+        }
+      }
+
+      document.getElementById('refresh').addEventListener('click', () => {
+        vscode.postMessage({ command: 'refresh' });
+      });
+
+      document.getElementById('search').addEventListener('input', (e) => {
+        vscode.postMessage({ command: 'filter', query: e.target.value || '' });
+      });
+
+      document.querySelectorAll('.item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = el.getAttribute('data-id');
+          vscode.postMessage({ command: 'openProblem', id });
+        });
+      });
+
+      // Add event listeners for module headers
+      document.addEventListener('click', (e) => {
+        const header = e.target.closest('.module-header');
+        if (header) {
+          e.stopPropagation();
+          const moduleId = header.getAttribute('data-module-id');
+          if (moduleId) {
+            toggleModule(moduleId);
+          }
+        }
+      });
+    </script>
+  </body>
+  </html>

@@ -72,8 +72,26 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
             const solvedProblems = module.problems.filter(p => p.status === 'solved').length;
             const progress = totalProblems > 0 ? Math.round((solvedProblems / totalProblems) * 100) : 0;
 
-            item.description = `${module.difficulty} | ${solvedProblems}/${totalProblems} solved (${progress}%)`;
-            item.tooltip = module.description;
+            // Color the module name based on difficulty
+            const getDifficultyColor = (difficulty: string): string => {
+              switch (difficulty.toUpperCase()) {
+                case 'EASY':
+                case 'BEGINNER':
+                  return '$(check) '; // Green checkmark
+                case 'MEDIUM':
+                case 'INTERMEDIATE':
+                  return '$(warning) '; // Yellow warning
+                case 'HARD':
+                case 'ADVANCED':
+                  return '$(error) '; // Red error
+                default:
+                  return '$(folder) '; // Default folder icon
+              }
+            };
+
+            item.label = getDifficultyColor(module.difficulty) + module.name;
+            item.description = `${solvedProblems}/${totalProblems} solved (${progress}%)`;
+            item.tooltip = `${module.difficulty} | ${module.description}`;
             item.iconPath = new vscode.ThemeIcon('folder');
 
             return item;
