@@ -19,7 +19,12 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
         const rawData = fs.readFileSync(problemsPath, 'utf-8');
         const jsonData = JSON.parse(rawData);
 
-        this.modules = jsonData.map((moduleData: any) => {
+        // Filter out modules that contain 'SQL' in their name
+        const filteredJsonData = jsonData.filter((moduleData: any) =>
+            !moduleData.module.name.toLowerCase().includes('sql')
+        );
+
+        this.modules = filteredJsonData.map((moduleData: any) => {
             const problemsForModule: Problem[] = [];
             for (const sectionId in moduleData.sections) {
                 const section = moduleData.sections[sectionId];
