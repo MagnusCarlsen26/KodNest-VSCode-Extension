@@ -36,6 +36,7 @@ export interface Problem {
   status?: string;
   topic?: string;
   content_markdown?: string;
+  samples?: SampleCase[];
   sectionId?: string;
   moduleName?: string;
   moduleDescription?: string;

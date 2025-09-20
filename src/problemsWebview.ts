@@ -26,7 +26,7 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(msg => {
       if (msg.command === 'openProblem') {
         // forward to extension command which will open the description panel
-        vscode.commands.executeCommand('kodnest.openProblem', msg.problem);
+        vscode.commands.executeCommand('kodnest.openProblem', msg.id);
       }
     });
 

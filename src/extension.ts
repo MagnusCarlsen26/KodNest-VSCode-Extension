@@ -31,7 +31,35 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerCommand(context, COMMAND.OPEN_PROBLEM, (problemLike: unknown) => {
-    const meta = normalizeToProblemMeta(problemLike);
+    let meta: ProblemMeta;
+
+    // If it's just a string (ID), look up the full problem data
+    if (typeof problemLike === 'string') {
+      const problem = problemProvider.findProblemById(problemLike);
+      if (problem) {
+        meta = {
+          id: problem.id,
+          title: problem.title,
+          difficulty: problem.difficulty,
+          content_markdown: problem.content_markdown || `# ${problem.title}\n\n(No description available)`,
+          samples: problem.samples || [],
+          sectionId: problem.sectionId,
+          status: problem.status,
+          topic: problem.topic,
+          moduleName: problem.moduleName,
+          moduleDescription: problem.moduleDescription,
+          moduleDifficulty: problem.moduleDifficulty,
+          moduleCategoryTitle: problem.moduleCategoryTitle
+        };
+      } else {
+        // Fallback to creating a basic meta from the ID
+        meta = normalizeToProblemMeta({ id: problemLike });
+      }
+    } else {
+      // Use the existing normalization logic for other types
+      meta = normalizeToProblemMeta(problemLike);
+    }
+
     ProblemDescriptionPanel.createOrShow(context.extensionUri, meta);
   });
 

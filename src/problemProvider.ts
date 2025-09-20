@@ -25,6 +25,16 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
                 const section = moduleData.sections[sectionId];
                 for (const problemId in section) {
                     const item = section[problemId];
+                    // Extract samples from test_cases
+                    const samples = Array.isArray(item.test_cases)
+                        ? item.test_cases
+                            .filter((testCase: any) => testCase.sample === true)
+                            .map((testCase: any) => ({
+                                input: testCase.input,
+                                output: testCase.output
+                            }))
+                        : [];
+
                     const p = {
                         id: item.id,
                         title: item.title || `Problem ${item.id}`,
@@ -37,7 +47,9 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
                         moduleDifficulty: moduleData.module.difficulty,
                         moduleCategoryTitle: moduleData.module.category.title,
                         content_markdown: item.description,
+                        samples: samples
                     } as unknown as Problem;
+
                     problemsForModule.push(p);
                 }
             }
@@ -137,5 +149,18 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
             // Problem level - no children
             return [];
         }
+    }
+
+    /**
+     * Find a problem by ID across all modules
+     */
+    findProblemById(id: string): Problem | undefined {
+        for (const module of this.modules) {
+            const problem = module.problems.find(p => p.id === id);
+            if (problem) {
+                return problem;
+            }
+        }
+        return undefined;
     }
 }
