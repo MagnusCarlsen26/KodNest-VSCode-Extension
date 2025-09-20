@@ -1,6 +1,9 @@
-<div class="item" data-id="{{problem_id}}">
-  <div class="title">{{problem_title}}</div>
-  <div class="meta">
-    <span class="difficulty-{{difficulty}}">{{difficulty}}</span>{{status_meta}}{{topic_meta}}
+<div class="item difficulty-{{difficulty}}" data-id="{{problem_id}}">
+  <div class="item-content">
+    <div class="status-indicator">{{status_indicator}}</div>
+    <div class="title">{{problem_title}}</div>
+  </div>
+  <div class="meta" style="{{meta_style}}">
+    {{status_meta}}
   </div>
 </div>

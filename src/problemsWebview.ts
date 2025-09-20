@@ -64,6 +64,61 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
     return undefined;
   }
 
+  private getStatusMeta(status: string | undefined): string {
+    if (!status) {
+      return '';
+    }
+
+    const normalizedStatus = status.toLowerCase().trim();
+
+    // Don't show anything for not attempted/NA status
+    if (normalizedStatus === 'na' ||
+        normalizedStatus === 'not_attempted' ||
+        normalizedStatus === 'not attempted' ||
+        normalizedStatus === 'pending' ||
+        normalizedStatus === '') {
+      return '';
+    }
+
+    // Don't show tick in meta since it's now shown separately
+    if (normalizedStatus === 'completed' ||
+        normalizedStatus === 'solved' ||
+        normalizedStatus === 'done') {
+      return '';
+    }
+
+    // For other statuses, show them as text
+    return ` | Status: ${escapeHtml(status)}`;
+  }
+
+  private getStatusIndicator(status: string | undefined): string {
+    if (!status) {
+      return '';
+    }
+
+    const normalizedStatus = status.toLowerCase().trim();
+
+    // Show green tick for completed status
+    if (normalizedStatus === 'completed' ||
+        normalizedStatus === 'solved' ||
+        normalizedStatus === 'done') {
+      return '<span style="color: #6bb341; font-weight: bold;">✓</span>';
+    }
+
+    return '';
+  }
+
+  private getMetaStyle(status: string | undefined, topic: string | undefined): string {
+    const statusMeta = this.getStatusMeta(status);
+
+    // Hide meta div if there's no content to show
+    if (!statusMeta && !topic) {
+      return 'display: none;';
+    }
+
+    return '';
+  }
+
   private async render(query: string = ''): Promise<void> {
     if (!this.view) {
       vscode.window.showInformationMessage('Problems Webview: View not yet initialized.');
@@ -131,8 +186,10 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
             .replace(/{{problem_id}}/g, escapeHtml(p.id))
             .replace(/{{problem_title}}/g, escapeHtml(p.title))
             .replace(/{{difficulty}}/g, escapeHtml(p.difficulty))
-            .replace(/{{status_meta}}/g, p.status ? ` | Status: ${escapeHtml(p.status)}` : '')
-            .replace(/{{topic_meta}}/g, p.topic ? ` | Topic: ${escapeHtml(p.topic)}` : '');
+            .replace(/{{status_indicator}}/g, this.getStatusIndicator(p.status))
+            .replace(/{{status_meta}}/g, this.getStatusMeta(p.status))
+            .replace(/{{topic_meta}}/g, p.topic ? ` | Topic: ${escapeHtml(p.topic)}` : '')
+            .replace(/{{meta_style}}/g, this.getMetaStyle(p.status, p.topic));
 
           return problemHtml;
         }).join('');
@@ -147,7 +204,6 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
           .replace(/{{difficulty}}/g, escapeHtml(module.difficulty))
           .replace(/{{solved_count}}/g, String(module.problems.filter(p => p.status === 'solved').length))
           .replace(/{{total_count}}/g, String(module.problems.length))
-          .replace(/{{category_meta}}/g, module.categoryTitle ? ` | ${escapeHtml(module.categoryTitle)}` : '')
           .replace(/{{problems_content}}/g, problemsContent);
 
         return moduleHtml;
