@@ -9,14 +9,23 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:kodnestProblems",
+    "onCommand:kodnest.openProblem",
+    "onCommand:kodnest.refreshProblems",
+    "onCommand:kodnest.showDescription",
+    "onCommand:kodnest.run",
+    "onCommand:kodnest.submit",
+    "onCommand:kodnest.createEditor"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "views": {
       "explorer": [
         {
           "id": "kodnestProblems",
-          "name": "Kodnest Problems"
+          "name": "Kodnest Problems",
+          "type": "webview"
         }
       ]
     },

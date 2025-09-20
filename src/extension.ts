@@ -5,14 +5,29 @@ import { ProblemDescriptionPanel } from './descriptionPanel';
 import { ProblemMeta, RunPayload } from './types';
 import { COMMAND, registerCommand } from './utils/commands';
 import { normalizeToProblemMeta, parseProblemFromActiveEditor, createEditorForProblem } from './utils/problem';
+import { ProblemsWebviewProvider } from './problemsWebview';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   const problemProvider = new ProblemProvider();
-  vscode.window.registerTreeDataProvider('kodnestProblems', problemProvider);
-  problemProvider.loadProblems(context.extensionPath);
+
+  // Register sidebar Webview View instead of TreeDataProvider
+  const webviewProvider = new ProblemsWebviewProvider(context.extensionUri, problemProvider);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(ProblemsWebviewProvider.viewId, webviewProvider)
+  );
+
+  // Load problems, then refresh the webview with data
+  await problemProvider.loadProblems(context.extensionPath);
+  webviewProvider.refresh();
+
+  // Refresh webview when underlying problems change
+  context.subscriptions.push(
+    problemProvider.onDidChangeTreeData(() => webviewProvider.refresh())
+  );
 
   registerCommand(context, COMMAND.REFRESH_PROBLEMS, () => {
     problemProvider.refresh();
+    webviewProvider.refresh();
   });
 
   registerCommand(context, COMMAND.OPEN_PROBLEM, (problemLike: unknown) => {

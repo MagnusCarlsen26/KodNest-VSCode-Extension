@@ -6,7 +6,7 @@ export interface SampleCase {
 export interface ProblemMeta {
   id: string;
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Unknown';
   content_markdown?: string;
   samples?: SampleCase[];
   sectionId?: string;
@@ -21,10 +21,15 @@ export interface ProblemMeta {
 export interface Problem {
   id: string;
   title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Unknown';
   status?: string;
   topic?: string;
   content_markdown?: string;
+  sectionId?: string;
+  moduleName?: string;
+  moduleDescription?: string;
+  moduleDifficulty?: string;
+  moduleCategoryTitle?: string;
 }
 
 export interface RunPayload {

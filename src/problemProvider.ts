@@ -25,19 +25,20 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
                 const section = moduleData.sections[sectionId];
                 for (const problemId in section) {
                     const item = section[problemId];
-                    problemsForModule.push({
+                    const p = {
                         id: item.id,
                         title: item.title,
-                        difficulty: item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1) as 'Easy' | 'Medium' | 'Hard',
+                        difficulty: (item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1)) as 'Easy' | 'Medium' | 'Hard',
                         status: item.status,
-                        topic: item.tags && item.tags.length > 0 ? item.tags[0] : undefined, // Assuming topic is the first tag
+                        topic: item.tags && item.tags.length > 0 ? item.tags[0] : undefined,
                         sectionId: sectionId,
                         moduleName: moduleData.module.name,
                         moduleDescription: moduleData.module.description,
                         moduleDifficulty: moduleData.module.difficulty,
                         moduleCategoryTitle: moduleData.module.category.title,
                         content_markdown: item.description,
-                    });
+                    } as unknown as Problem;
+                    problemsForModule.push(p);
                 }
             }
             return problemsForModule;

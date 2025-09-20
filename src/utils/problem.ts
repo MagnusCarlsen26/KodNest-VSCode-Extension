@@ -24,9 +24,9 @@ export function parseProblemFromActiveEditor(): ProblemMeta | undefined {
   const firstLine = editor.document.lineAt(0).text;
   const match = firstLine.match(/\/\/\s*(.+)\s*\(([^)]+)\)/);
   if (match) {
-    return { id: match[2], title: match[1], content_markdown: `# ${match[1]}\n\n(Description not loaded during dev)` };
+    return { id: match[2], title: match[1], difficulty: 'Unknown', content_markdown: `# ${match[1]}\n\n(Description not loaded during dev)` };
   }
-  return { id: 'unknown', title: editor.document.fileName, content_markdown: '(Description not available)' };
+  return { id: 'unknown', title: editor.document.fileName, difficulty: 'Unknown', content_markdown: '(Description not available)' };
 }
 
 export async function createEditorForProblem(context: vscode.ExtensionContext, problem: ProblemMeta): Promise<void> {
