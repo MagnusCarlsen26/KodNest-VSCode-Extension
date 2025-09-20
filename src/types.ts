@@ -18,6 +18,17 @@ export interface ProblemMeta {
   moduleCategoryTitle?: string;
 }
 
+export interface Module {
+  id: string;
+  name: string;
+  description: string;
+  difficulty: string;
+  progress: number;
+  noOfQuestions: number;
+  categoryTitle: string;
+  problems: Problem[];
+}
+
 export interface Problem {
   id: string;
   title: string;

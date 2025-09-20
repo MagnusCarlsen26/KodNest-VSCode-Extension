@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { Problem } from './types';
+import { Problem, Module } from './types';
 
-export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
+export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module> {
     
     private onDidChangeTreeDataEmitter: vscode.EventEmitter<Problem | undefined | void> =
         new vscode.EventEmitter<Problem | undefined | void>();
     readonly onDidChangeTreeData: vscode.Event<Problem | undefined | void> =
         this.onDidChangeTreeDataEmitter.event;
 
-    private problems: Problem[] = [];
+    private modules: Module[] = [];
 
     constructor() { /* Problems will be loaded asynchronously */ }
 
@@ -19,7 +19,7 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
         const rawData = fs.readFileSync(problemsPath, 'utf-8');
         const jsonData = JSON.parse(rawData);
 
-        this.problems = jsonData.flatMap((moduleData: any) => {
+        this.modules = jsonData.map((moduleData: any) => {
             const problemsForModule: Problem[] = [];
             for (const sectionId in moduleData.sections) {
                 const section = moduleData.sections[sectionId];
@@ -27,7 +27,7 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
                     const item = section[problemId];
                     const p = {
                         id: item.id,
-                        title: item.title,
+                        title: item.title || `Problem ${item.id}`,
                         difficulty: (item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1)) as 'Easy' | 'Medium' | 'Hard',
                         status: item.status,
                         topic: item.tags && item.tags.length > 0 ? item.tags[0] : undefined,
@@ -41,7 +41,19 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
                     problemsForModule.push(p);
                 }
             }
-            return problemsForModule;
+
+            const module: Module = {
+                id: moduleData.module.id,
+                name: moduleData.module.name,
+                description: moduleData.module.description,
+                difficulty: moduleData.module.difficulty,
+                progress: moduleData.module.progress || 0,
+                noOfQuestions: moduleData.module.no_of_questions,
+                categoryTitle: moduleData.module.category.title,
+                problems: problemsForModule
+            };
+
+            return module;
         });
         this.refresh();
     }
@@ -50,27 +62,62 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem> {
         this.onDidChangeTreeDataEmitter.fire();
     }
 
-    getTreeItem(problem: Problem): vscode.TreeItem {
-        const item = new vscode.TreeItem(problem.title, vscode.TreeItemCollapsibleState.None);
-        
-        let descriptionParts = [];
-        if (problem.difficulty) {
-            descriptionParts.push(problem.difficulty);
-        }
-        if (problem.status) {
-            descriptionParts.push(problem.status);
-        }
-        item.description = descriptionParts.join(' | ');
+    getTreeItem(element: Problem | Module): vscode.TreeItem {
+        if ('problems' in element) {
+            // This is a Module
+            const module = element as Module;
+            const item = new vscode.TreeItem(module.name, vscode.TreeItemCollapsibleState.Collapsed);
 
-        item.command = {
-            command: 'kodnest.openProblem',
-            title: 'Open Problem',
-            arguments: [problem]
-        };
-        return item;
+            const totalProblems = module.problems.length;
+            const solvedProblems = module.problems.filter(p => p.status === 'solved').length;
+            const progress = totalProblems > 0 ? Math.round((solvedProblems / totalProblems) * 100) : 0;
+
+            item.description = `${module.difficulty} | ${solvedProblems}/${totalProblems} solved (${progress}%)`;
+            item.tooltip = module.description;
+            item.iconPath = new vscode.ThemeIcon('folder');
+
+            return item;
+        } else {
+            // This is a Problem
+            const problem = element as Problem;
+            const item = new vscode.TreeItem(problem.title, vscode.TreeItemCollapsibleState.None);
+
+            let descriptionParts = [];
+            if (problem.difficulty) {
+                descriptionParts.push(problem.difficulty);
+            }
+            if (problem.status) {
+                descriptionParts.push(problem.status);
+            }
+            item.description = descriptionParts.join(' | ');
+
+            item.command = {
+                command: 'kodnest.openProblem',
+                title: 'Open Problem',
+                arguments: [problem]
+            };
+
+            // Set icon based on status
+            if (problem.status === 'solved') {
+                item.iconPath = new vscode.ThemeIcon('check');
+            } else {
+                item.iconPath = new vscode.ThemeIcon('question');
+            }
+
+            return item;
+        }
     }
 
-    getChildren(): Problem[] {
-        return this.problems;
+    getChildren(element?: Problem | Module): Problem[] | Module[] {
+        if (!element) {
+            // Root level - return modules
+            return this.modules;
+        } else if ('problems' in element) {
+            // Module level - return problems
+            return (element as Module).problems;
+        } else {
+            // Problem level - no children
+            return [];
+        }
     }
 }
