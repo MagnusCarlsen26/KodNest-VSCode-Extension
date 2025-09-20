@@ -22,46 +22,19 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [this.extensionUri]
     };
 
-    return this.render();
-
-    webviewView.webview.onDidReceiveMessage((msg) => {
-      switch (msg.command) {
-        case 'openProblem': {
-          const problem: Problem | undefined = this.findProblemById(msg.id);
-          if (problem) {
-            vscode.commands.executeCommand('kodnest.openProblem', problem);
-          }
-          return;
-        }
-        case 'refresh': {
-          this.render().catch(error => {
-            vscode.window.showErrorMessage(`Failed to refresh problems: ${error}`);
-          });
-          return;
-        }
-        case 'filter': {
-          this.render(String(msg.query || '')).catch(error => {
-            vscode.window.showErrorMessage(`Failed to filter problems: ${error}`);
-          });
-          return;
-        }
+    // receive messages from webview
+    webviewView.webview.onDidReceiveMessage(msg => {
+      if (msg.command === 'openProblem') {
+        // forward to extension command which will open the description panel
+        vscode.commands.executeCommand('kodnest.openProblem', msg.problem);
       }
     });
+
+    return this.render();
   }
 
   public refresh(): Promise<void> {
     return this.render();
-  }
-
-  private findProblemById(id: string): Problem | undefined {
-    const modules = this.problemProvider.getChildren() as Module[];
-    for (const module of modules) {
-      const problem = module.problems.find(p => p.id === id);
-      if (problem) {
-        return problem;
-      }
-    }
-    return undefined;
   }
 
   private getStatusMeta(status: string | undefined): string {

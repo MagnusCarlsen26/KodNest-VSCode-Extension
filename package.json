@@ -10,13 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:kodnestProblems",
-    "onCommand:kodnest.openProblem",
-    "onCommand:kodnest.refreshProblems",
-    "onCommand:kodnest.showDescription",
-    "onCommand:kodnest.run",
-    "onCommand:kodnest.submit",
-    "onCommand:kodnest.createEditor"
+    "onView:kodnestProblems"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -31,6 +25,18 @@
     },
     "commands": [
       {
+        "command": "kodnest.openProblem",
+        "title": "Open Problem"
+      },
+      {
+        "command": "kodnest.refreshProblems",
+        "title": "Refresh Problems"
+      },
+      {
+        "command": "kodnest.showDescription",
+        "title": "Show Problem Description"
+      },
+      {
         "command": "kodnest.run",
         "title": "Run Solution"
       },
@@ -39,8 +45,8 @@
         "title": "Submit Solution"
       },
       {
-        "command": "kodnest.showDescription",
-        "title": "Show Problem Description"
+        "command": "kodnest.createEditor",
+        "title": "Create Editor for Problem"
       }
     ],
     "codeLensProviders": [
