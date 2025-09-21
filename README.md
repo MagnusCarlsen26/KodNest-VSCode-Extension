@@ -1,6 +1,6 @@
-# vscode-extension README
+# KodNest VSCode Extension
 
-This is the README for your extension "vscode-extension". After writing up a brief description, we recommend including the following sections.
+This extension provides a seamless experience for KodNest users within VS Code, allowing them to browse problems, test solutions, and view verdicts directly in their IDE.
 
 ## Features
 
@@ -48,6 +48,10 @@ Fixed issue #.
 Added features X, Y, and Z.
 
 ---
+
+## License
+
+This extension is licensed under the [MIT License](LICENSE).
 
 ## Following extension guidelines
 

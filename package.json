@@ -1,15 +1,33 @@
 {
-  "name": "vscode-extension",
-  "displayName": "VSCode-Extension",
-  "description": "",
+  "name": "KodNest-VSCode-Extension",
+  "displayName": "KodNest",
+  "description": "An extension to help KodNest users practice and submit coding problems directly from VS Code.",
   "version": "0.0.1",
-  "publisher": "your-publisher-id",
+  "icon": "assets/icon.png",
+  "keywords": [
+    "kodnest",
+    "coding",
+    "practice",
+    "education",
+    "java"
+  ],
+  "publisher": "KhushalSindhav",
   "engines": {
     "vscode": "^1.104.0"
   },
   "categories": [
+    "Programming Languages",
+    "Education",
     "Other"
   ],
+  "bugs": {
+    "url": "https://github.com/KodNest/Kodnest-VSC-extension/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KodNest/KodNest-VSCode-Extension.git"
+  },
+  "license": "MIT",
   "activationEvents": [
     "onLanguage:java",
     "onCommand:kodnest.submit",
