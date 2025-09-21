@@ -84,29 +84,124 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   registerCommand(context, COMMAND.RUN, async (payload: RunPayload | vscode.TextDocument | undefined) => {
-    const maybePayload = payload as RunPayload | undefined;
-    if (maybePayload && typeof maybePayload === 'object' && 'problem' in maybePayload && maybePayload.problem) {
-      const idx = Number(maybePayload.sampleIndex ?? 0);
+    if (payload && typeof payload === 'object' && 'problem' in (payload as any) && (payload as any).problem) {
+      const rp = payload as RunPayload;
+      const problem = rp.problem as ProblemMeta;
+      const sampleIndex = Number(rp.sampleIndex ?? 0);
+      const title = problem?.title ?? problem?.id ?? 'unknown problem';
+      vscode.window.showInformationMessage(`Run clicked for "${title}" (sample ${sampleIndex})`);
       return;
     }
+
+    // If the payload is a TextDocument
+    if (payload && typeof payload === 'object' && 'uri' in (payload as any) && (payload as any).getText) {
+      const doc = payload as vscode.TextDocument;
+      const pm = tryParseProblemFromDoc(doc);
+      const name = pm?.title ?? doc.fileName;
+      vscode.window.showInformationMessage(`Run clicked for ${name}`);
+      return;
+    }
+
+    // Fallback to active editor
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       vscode.window.showErrorMessage('Open a problem file to run.');
       return;
     }
+    const activeProblem = parseProblemFromActiveEditor();
+    const activeName = activeProblem ? activeProblem.title : editor.document.fileName;
+    vscode.window.showInformationMessage(`Run clicked for ${activeName}`);
   });
 
-  registerCommand(context, COMMAND.SUBMIT, (doc: vscode.TextDocument) => {
+  // SUBMIT command - shows notifications, supports being called with a TextDocument or fallback to active editor
+  registerCommand(context, COMMAND.SUBMIT, async (docOrUri?: vscode.TextDocument | vscode.Uri | string) => {
+    let doc: vscode.TextDocument | undefined;
+
+    // If a TextDocument was passed directly
+    if (docOrUri && typeof (docOrUri as any).getText === 'function') {
+      doc = docOrUri as vscode.TextDocument;
+    } else if (docOrUri && typeof docOrUri === 'string') {
+      // maybe a URI string
+      try {
+        const uri = vscode.Uri.parse(docOrUri);
+        doc = await vscode.workspace.openTextDocument(uri);
+      } catch {
+        // ignore parse/open error and fall through to active editor
+      }
+    } else if (docOrUri && (docOrUri as vscode.Uri).scheme) {
+      // passed a Uri
+      try {
+        doc = await vscode.workspace.openTextDocument(docOrUri as vscode.Uri);
+      } catch {
+        // ignore and fallback
+      }
+    }
+
+    if (!doc) {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage('No active editor to submit.');
+        return;
+      }
+      doc = editor.document;
+    }
+
+    // Try to extract problem meta from the document (if you store metadata in comments)
+    const pm = tryParseProblemFromDoc(doc);
+    const name = pm?.title ?? doc.fileName;
+    vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `Submitting ${name}`, cancellable: false },
+      async (progress) => {
+        progress.report({ message: 'Preparing...' });
+        // small delay so progress UI is visible; remove in real submission
+        await new Promise((r) => setTimeout(r, 250));
+        // show notification (placeholder)
+        vscode.window.showInformationMessage(`Submit clicked for ${name}`);
+        progress.report({ message: 'Done' });
+      }
+    );
   });
 
+  // CREATE_EDITOR command - create an editor for the provided ProblemMeta
   registerCommand(context, COMMAND.CREATE_EDITOR, async (problem: ProblemMeta) => {
     if (!problem) {
       vscode.window.showErrorMessage('No problem data provided to create editor.');
       return;
     }
-    await createEditorForProblem(context, problem);
+    try {
+      await createEditorForProblem(context, problem);
+      vscode.window.showInformationMessage(`Opened editor for "${problem.title ?? problem.id}".`);
+    } catch (err) {
+      vscode.window.showErrorMessage('Failed to create editor: ' + String(err));
+    }
   });
 }
 
-// This method is called when your extension is deactivated
+// Try to parse ProblemMeta from a document using your helper. If it fails, return undefined.
+function tryParseProblemFromDoc(doc: vscode.TextDocument | undefined): ProblemMeta | undefined {
+  if (!doc) return undefined;
+  try {
+    // If you have a helper that reads problem meta from top comments, use it
+    // Your existing parseProblemFromActiveEditor uses active editor; we replicate behavior by switching editors
+    // temporarily: open the document in the editor then call parse helper or implement a doc-based parse helper.
+    // For simplicity here, attempt to parse using active editor if it's the same doc
+    const active = vscode.window.activeTextEditor;
+    if (active && active.document === doc) {
+      return parseProblemFromActiveEditor();
+    }
+
+    // Otherwise try a naive approach: look for a line `// problem-id: <id>` on the first 5 lines
+    for (let i = 0; i < Math.min(5, doc.lineCount); i++) {
+      const text = doc.lineAt(i).text;
+      const m = text.match(/problem-id:\s*(\S+)/i);
+      if (m) {
+        return normalizeToProblemMeta({ id: m[1], title: m[1] });
+      }
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return undefined;
+}
+
 export function deactivate() {}

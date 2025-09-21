@@ -11,7 +11,9 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:kodnestProblems"
+    "onLanguage:java",
+    "onCommand:kodnest.submit",
+    "onCommand:kodnest.run"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -50,12 +52,21 @@
         "title": "Create Editor for Problem"
       }
     ],
-    "codeLensProviders": [
-      {
-        "language": "javascript",
-        "provider": "kodnestCodeLensProvider"
-      }
-    ]
+    "menus": {
+      "editor/title": [
+        {
+          "command": "kodnest.run",
+          "when": "editorLangId == java",
+          "group": "navigation"
+        },
+        {
+          "command": "kodnest.submit",
+          "when": "editorLangId == java",
+          "group": "navigation"
+        }
+      ]
+    }
+
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
