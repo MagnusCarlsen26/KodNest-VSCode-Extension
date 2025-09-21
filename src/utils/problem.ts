@@ -100,13 +100,13 @@ export async function createEditorForProblem(
       await vscode.workspace.fs.stat(fileUri);
       // File exists, open it
       const document = await vscode.workspace.openTextDocument(fileUri);
-      await vscode.window.showTextDocument(document, { preview: false });
+      await vscode.window.showTextDocument(document, { preview: false, viewColumn: vscode.ViewColumn.One });
       vscode.window.showInformationMessage(`Opened existing file: ${fileName}`);
     } catch (e) {
       // File does not exist, create it with boilerplate
       await vscode.workspace.fs.writeFile(fileUri, Buffer.from(boilerplate, 'utf8'));
       const document = await vscode.workspace.openTextDocument(fileUri);
-      await vscode.window.showTextDocument(document, { preview: false });
+      await vscode.window.showTextDocument(document, { preview: false, viewColumn: vscode.ViewColumn.One });
       vscode.window.showInformationMessage(`Created new file: ${fileName}`);
     }
   } catch (err) {
