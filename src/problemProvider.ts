@@ -47,6 +47,7 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
                         status: item.status,
                         topic: item.tags && item.tags.length > 0 ? item.tags[0] : undefined,
                         sectionId: sectionId,
+                        moduleId: moduleData.module.id,
                         moduleName: moduleData.module.name,
                         moduleDescription: moduleData.module.description,
                         moduleDifficulty: moduleData.module.difficulty,

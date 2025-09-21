@@ -1,0 +1,9 @@
+{
+    "baseUrl": "https://api.kodnest.in/assessment-service/api/v2/consumers",
+
+    "testSolution": "/practices/{{moduleId}}/execute",
+    "submitSolution": "/practices/{{moduleId}}/submit",
+
+    "getSubmissions": "/practices/{{problemId}}/{{userId}}/submissions?practice_id={{moduleId}}&page=0&page_size=10",
+    "getSubmissionByExecutionId": "/practices/submissions/{{executionId}}",
+}

@@ -9,13 +9,14 @@ export function normalizeToProblemMeta(input: unknown): ProblemMeta {
   const content_markdown = asAny?.content_markdown ?? `# ${title}\n\n(Description not loaded during dev)`;
   const samples = Array.isArray(asAny?.samples) ? asAny.samples : [];
   const sectionId = asAny?.sectionId;
+  const moduleId = asAny?.moduleId;
   const status = asAny?.status;
   const topic = asAny?.topic;
   const moduleName = asAny?.moduleName;
   const moduleDescription = asAny?.moduleDescription;
   const moduleDifficulty = asAny?.moduleDifficulty;
   const moduleCategoryTitle = asAny?.moduleCategoryTitle;
-  return { id, title, difficulty, content_markdown, samples, sectionId, status, topic, moduleName, moduleDescription, moduleDifficulty, moduleCategoryTitle, languages: asAny?.languages };
+  return { id, title, difficulty, content_markdown, samples, sectionId, moduleId, status, topic, moduleName, moduleDescription, moduleDifficulty, moduleCategoryTitle, languages: asAny?.languages };
 }
 
 // Helper to get file extension from language name
@@ -37,12 +38,44 @@ function sanitizeFilename(title: string): string {
 export function parseProblemFromActiveEditor(): ProblemMeta | undefined {
   const editor = vscode.window.activeTextEditor;
   if (!editor) { return undefined; }
-  const firstLine = editor.document.lineAt(0).text;
+  const doc = editor.document;
+  const maxLinesToScan = Math.min(15, doc.lineCount);
+  const meta: any = {};
+  for (let i = 0; i < maxLinesToScan; i++) {
+    const text = doc.lineAt(i).text.trim();
+    // Pattern: // Title (id)
+    const titleMatch = text.match(/^\/\/\s*(.+)\s*\(([^)]+)\)\s*$/);
+    if (titleMatch) {
+      meta.title = meta.title || titleMatch[1];
+      meta.id = meta.id || titleMatch[2];
+      continue;
+    }
+    // Pattern: // key: value
+    const kv = text.match(/^\/\/\s*([a-zA-Z0-9_]+)\s*:\s*(.+)\s*$/);
+    if (kv) {
+      const key = kv[1];
+      const value = kv[2];
+      if (['sectionId', 'moduleId', 'id', 'title'].includes(key)) {
+        meta[key] = value;
+      } else if (key === 'languageId') {
+        meta.languages = meta.languages || [{}];
+        meta.languages[0].id = value;
+      } else if (key === 'languageName') {
+        meta.languages = meta.languages || [{}];
+        meta.languages[0].name = value;
+      }
+    }
+  }
+  if (meta.id && meta.title) {
+    return normalizeToProblemMeta(meta);
+  }
+  // fallback to old single-line format only
+  const firstLine = doc.lineAt(0).text;
   const match = firstLine.match(/\/\/\s*(.+)\s*\(([^)]+)\)/);
   if (match) {
     return { id: match[2], title: match[1], difficulty: 'Unknown', content_markdown: `# ${match[1]}\n\n(Description not loaded during dev)` };
   }
-  return { id: 'unknown', title: editor.document.fileName, difficulty: 'Unknown', content_markdown: '(Description not available)' };
+  return { id: 'unknown', title: doc.fileName, difficulty: 'Unknown', content_markdown: '(Description not available)' };
 }
 
 export async function createEditorForProblem(
@@ -104,7 +137,16 @@ export async function createEditorForProblem(
       vscode.window.showInformationMessage(`Opened existing file: ${fileName}`);
     } catch (e) {
       // File does not exist, create it with boilerplate
-      await vscode.workspace.fs.writeFile(fileUri, Buffer.from(boilerplate, 'utf8'));
+      const headerLines = [
+        `// ${problem.title} (${problem.id})`,
+        problem.sectionId ? `// sectionId: ${problem.sectionId}` : undefined,
+        (problem as any).moduleId ? `// moduleId: ${(problem as any).moduleId}` : undefined,
+        language ? `// languageName: ${language}` : undefined,
+        problem.languages?.[0]?.id ? `// languageId: ${problem.languages?.[0]?.id}` : undefined,
+        ''
+      ].filter(Boolean).join('\n');
+      const content = `${headerLines}\n${boilerplate}`;
+      await vscode.workspace.fs.writeFile(fileUri, Buffer.from(content, 'utf8'));
       const document = await vscode.workspace.openTextDocument(fileUri);
       await vscode.window.showTextDocument(document, { preview: false, viewColumn: vscode.ViewColumn.One });
       vscode.window.showInformationMessage(`Created new file: ${fileName}`);

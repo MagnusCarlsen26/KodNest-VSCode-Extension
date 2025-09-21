@@ -4,7 +4,7 @@ export interface SampleCase {
 }
 
 export interface Language {
-  id: string;
+  id: number;
   name: string;
   boilerplate: string;
 }
@@ -16,6 +16,7 @@ export interface ProblemMeta {
   content_markdown?: string;
   samples?: SampleCase[];
   sectionId?: string;
+  moduleId?: string;
   status?: string;
   topic?: string;
   moduleName?: string;
@@ -45,6 +46,7 @@ export interface Problem {
   content_markdown?: string;
   samples?: SampleCase[];
   sectionId?: string;
+  moduleId?: string;
   moduleName?: string;
   moduleDescription?: string;
   moduleDifficulty?: string;
@@ -55,6 +57,16 @@ export interface Problem {
 export interface RunPayload {
   problem?: ProblemMeta;
   sampleIndex?: number;
+}
+
+export interface Verdict {
+  expectedOutput: string;
+  compileOutput: string;
+  status: string;
+  stdin: string;
+  stdout: string;
+  stderr: string;
+  time: string;
 }
 
 

@@ -2,17 +2,26 @@ import * as vscode from 'vscode';
 import { ProblemProvider } from './problemProvider';
 import { KodnestCodeLensProvider } from './codeLensProvider';
 import { ProblemDescriptionPanel } from './descriptionPanel';
-import { ProblemMeta, RunPayload } from './types';
+import { ProblemMeta } from './types';
 import { COMMAND, registerCommand } from './utils/commands';
 import { normalizeToProblemMeta, parseProblemFromActiveEditor, createEditorForProblem } from './utils/problem';
 import { ProblemsWebviewProvider } from './problemsWebview';
+import { askAuthTokenAndStore } from './services/auth/askAuthTokenAndStore';
+import { askUserIdAndStore } from './services/auth/askUserId';
+import { testSolution } from './services/api/testSolution';
+
 
 export async function activate(context: vscode.ExtensionContext) {
   const problemProvider = new ProblemProvider();
 
   // Check if auth token exists, if not, prompt the user
   if (!(await context.secrets.get('kodnestAuthToken'))) {
-    promptForAuthTokenAndStore(context);
+    await askAuthTokenAndStore(context);
+  }
+
+  // Check if user ID exists, if not, prompt the user
+  if (!(await context.secrets.get('kodnestUserId'))) {
+    await askUserIdAndStore(context);
   }
 
   // Register sidebar Webview View instead of TreeDataProvider
@@ -37,7 +46,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Command to ask for and securely store the KodNest Auth Token
   registerCommand(context, COMMAND.SET_AUTH_TOKEN, async () => {
-    await promptForAuthTokenAndStore(context);
+    await askAuthTokenAndStore(context);
+  });
+
+  // Command to ask for and securely store the KodNest User ID
+  registerCommand(context, COMMAND.SET_USER_ID, async () => {
+    await askUserIdAndStore(context);
   });
 
   // Command to retrieve and display the stored KodNest Auth Token (for testing/debug)
@@ -48,6 +62,16 @@ export async function activate(context: vscode.ExtensionContext) {
     } else {
       vscode.window.showInformationMessage('No KodNest authentication token found.');
     }
+  });
+
+  // Command to retrieve and display the stored KodNest User ID (for testing/debug)
+  registerCommand(context, COMMAND.GET_USER_ID, async () => {
+    const userId = await context.secrets.get('kodnestUserId');
+    if (userId) {
+      vscode.window.showInformationMessage(`Stored KodNest User ID: ${userId}`);
+    } else {
+      vscode.window.showInformationMessage('No KodNest user ID found.');
+    } 
   });
 
   registerCommand(context, COMMAND.OPEN_PROBLEM, (problemLike: unknown) => {
@@ -64,6 +88,7 @@ export async function activate(context: vscode.ExtensionContext) {
           content_markdown: problem.content_markdown || `# ${problem.title}\n\n(No description available)`,
           samples: problem.samples || [],
           sectionId: problem.sectionId,
+          moduleId: problem.moduleId,
           status: problem.status,
           topic: problem.topic,
           moduleName: problem.moduleName,
@@ -81,6 +106,9 @@ export async function activate(context: vscode.ExtensionContext) {
       meta = normalizeToProblemMeta(problemLike);
     }
     ProblemDescriptionPanel.createOrShow(context.extensionUri, meta);
+    try {
+      context.workspaceState.update('kodnest.lastProblemMeta', meta);
+    } catch {}
   });
 
   const codeLensProvider = new KodnestCodeLensProvider();
@@ -103,83 +131,14 @@ export async function activate(context: vscode.ExtensionContext) {
     ProblemDescriptionPanel.createOrShow(context.extensionUri, problem);
   });
 
-  registerCommand(context, COMMAND.RUN, async (payload: RunPayload | vscode.TextDocument | undefined) => {
-    if (payload && typeof payload === 'object' && 'problem' in (payload as any) && (payload as any).problem) {
-      const rp = payload as RunPayload;
-      const problem = rp.problem as ProblemMeta;
-      const sampleIndex = Number(rp.sampleIndex ?? 0);
-      const title = problem?.title ?? problem?.id ?? 'unknown problem';
-      vscode.window.showInformationMessage(`Run clicked for "${title}" (sample ${sampleIndex})`);
-      return;
-    }
-
-    // If the payload is a TextDocument
-    if (payload && typeof payload === 'object' && 'uri' in (payload as any) && (payload as any).getText) {
-      const doc = payload as vscode.TextDocument;
-      const pm = tryParseProblemFromDoc(doc);
-      const name = pm?.title ?? doc.fileName;
-      vscode.window.showInformationMessage(`Run clicked for ${name}`);
-      return;
-    }
-
-    // Fallback to active editor
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      vscode.window.showErrorMessage('Open a problem file to run.');
-      return;
-    }
-    const activeProblem = parseProblemFromActiveEditor();
-    const activeName = activeProblem ? activeProblem.title : editor.document.fileName;
-    vscode.window.showInformationMessage(`Run clicked for ${activeName}`);
+  registerCommand(context, COMMAND.RUN, async () => {
+    return await testSolution(context);
   });
 
   // SUBMIT command - shows notifications, supports being called with a TextDocument or fallback to active editor
-  registerCommand(context, COMMAND.SUBMIT, async (docOrUri?: vscode.TextDocument | vscode.Uri | string) => {
-    let doc: vscode.TextDocument | undefined;
-
-    // If a TextDocument was passed directly
-    if (docOrUri && typeof (docOrUri as any).getText === 'function') {
-      doc = docOrUri as vscode.TextDocument;
-    } else if (docOrUri && typeof docOrUri === 'string') {
-      // maybe a URI string
-      try {
-        const uri = vscode.Uri.parse(docOrUri);
-        doc = await vscode.workspace.openTextDocument(uri);
-      } catch {
-        // ignore parse/open error and fall through to active editor
-      }
-    } else if (docOrUri && (docOrUri as vscode.Uri).scheme) {
-      // passed a Uri
-      try {
-        doc = await vscode.workspace.openTextDocument(docOrUri as vscode.Uri);
-      } catch {
-        // ignore and fallback
-      }
-    }
-
-    if (!doc) {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        vscode.window.showErrorMessage('No active editor to submit.');
-        return;
-      }
-      doc = editor.document;
-    }
-
-    // Try to extract problem meta from the document (if you store metadata in comments)
-    const pm = tryParseProblemFromDoc(doc);
-    const name = pm?.title ?? doc.fileName;
-    vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: `Submitting ${name}`, cancellable: false },
-      async (progress) => {
-        progress.report({ message: 'Preparing...' });
-        // small delay so progress UI is visible; remove in real submission
-        await new Promise((r) => setTimeout(r, 250));
-        // show notification (placeholder)
-        vscode.window.showInformationMessage(`Submit clicked for ${name}`);
-        progress.report({ message: 'Done' });
-      }
-    );
+  registerCommand(context, COMMAND.SUBMIT, async () => {
+    // todo: later change this function name
+    return await testSolution(context);
   });
 
   // CREATE_EDITOR command - create an editor for the provided ProblemMeta
@@ -195,48 +154,6 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage('Failed to create editor: ' + String(err));
     }
   });
-}
-
-async function promptForAuthTokenAndStore(context: vscode.ExtensionContext) {
-  const token = await vscode.window.showInputBox({
-    prompt: 'Enter your KodNest authentication token',
-    ignoreFocusOut: true, // Keep the input box open even if focus is lost
-    password: true // Mask the input
-  });
-
-  if (token) {
-    await context.secrets.store('kodnestAuthToken', token);
-    vscode.window.showInformationMessage('KodNest authentication token stored securely.');
-  } else {
-    vscode.window.showInformationMessage('KodNest authentication token not set.');
-  }
-}
-
-// Try to parse ProblemMeta from a document using your helper. If it fails, return undefined.
-function tryParseProblemFromDoc(doc: vscode.TextDocument | undefined): ProblemMeta | undefined {
-  if (!doc) return undefined;
-  try {
-    // If you have a helper that reads problem meta from top comments, use it
-    // Your existing parseProblemFromActiveEditor uses active editor; we replicate behavior by switching editors
-    // temporarily: open the document in the editor then call parse helper or implement a doc-based parse helper.
-    // For simplicity here, attempt to parse using active editor if it's the same doc
-    const active = vscode.window.activeTextEditor;
-    if (active && active.document === doc) {
-      return parseProblemFromActiveEditor();
-    }
-
-    // Otherwise try a naive approach: look for a line `// problem-id: <id>` on the first 5 lines
-    for (let i = 0; i < Math.min(5, doc.lineCount); i++) {
-      const text = doc.lineAt(i).text;
-      const m = text.match(/problem-id:\s*(\S+)/i);
-      if (m) {
-        return normalizeToProblemMeta({ id: m[1], title: m[1] });
-      }
-    }
-  } catch {
-    // ignore parse errors
-  }
-  return undefined;
 }
 
 export function deactivate() {}

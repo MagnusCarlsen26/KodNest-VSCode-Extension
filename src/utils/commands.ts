@@ -8,7 +8,9 @@ export const COMMAND = {
   SUBMIT: 'kodnest.submit',
   CREATE_EDITOR: 'kodnest.createEditor',
   SET_AUTH_TOKEN: 'kodnest.setAuthToken',
-  GET_AUTH_TOKEN: 'kodnest.getAuthToken'
+  GET_AUTH_TOKEN: 'kodnest.getAuthToken',
+  SET_USER_ID: 'kodnest.setUserId',
+  GET_USER_ID: 'kodnest.getUserId'
 } as const;
 
 export type Values<T> = T[keyof T];
