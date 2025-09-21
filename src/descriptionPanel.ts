@@ -1,12 +1,18 @@
 import * as vscode from 'vscode';
 // Use dynamic import wrappers to avoid ESM/CJS interop issues under Node16 module resolution
 // while keeping the call sites typed.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { marked } = require('marked');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const sanitizeHtml: any = require('sanitize-html');
 import { ProblemMeta } from './types';
 import { escapeHtml, getNonce } from './utils';
+
+// Helper function to truncate long titles
+function truncateTitle(title: string, maxLength: number = 50): string {
+  if (title.length <= maxLength) {
+    return title;
+  }
+  return title.substring(0, maxLength - 3) + '...';
+}
 
 export class ProblemDescriptionPanel {
   public static currentPanel: ProblemDescriptionPanel | undefined;
@@ -43,7 +49,7 @@ export class ProblemDescriptionPanel {
     // Otherwise create a new panel
     const panel = vscode.window.createWebviewPanel(
       'kodnest.problemDescription',
-      `${problem.id} — ${problem.title}`,
+      truncateTitle(problem.title),
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -56,7 +62,7 @@ export class ProblemDescriptionPanel {
 
   public updateProblem(problem: ProblemMeta): void {
     this._problem = problem;
-    this._panel.title = `${problem.id} — ${problem.title}`;
+    this._panel.title = truncateTitle(problem.title);
     this._update();
   }
 
@@ -68,7 +74,7 @@ export class ProblemDescriptionPanel {
 
     while (this._disposables.length) {
       const d = this._disposables.pop();
-      if (d) d.dispose();
+      if (d) { d.dispose(); }
     }
   }
 
@@ -81,10 +87,6 @@ export class ProblemDescriptionPanel {
       case 'openInEditor':
         // call the dedicated command to create the editor stub
         vscode.commands.executeCommand('kodnest.createEditor', this._problem);
-        return;
-      case 'copyTemplate':
-        vscode.env.clipboard.writeText(this._generateTemplate());
-        vscode.window.showInformationMessage('Template copied to clipboard.');
         return;
     }
   }
@@ -119,141 +121,51 @@ export class ProblemDescriptionPanel {
     const samples = this._problem.samples || [];
 
     try {
-      // Read the HTML template
       const fs = require('fs');
       const path = require('path');
-      const templatePath = path.join(__dirname, 'templates', 'description.html');
-      let html = fs.readFileSync(templatePath, 'utf-8');
 
-      // Replace placeholders
+      // Read templates from src/templates to keep a single source of truth
+      const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates');
+      const templatePath = path.join(templatesDir, 'description.html');
+      const samplesTemplatePath = path.join(templatesDir, 'samples.html');
+      const sampleItemTemplatePath = path.join(templatesDir, 'sample-item.html');
+      const sampleOutputTemplatePath = path.join(templatesDir, 'sample-output.html');
+
+      let html = fs.readFileSync(templatePath, 'utf-8');
+      const samplesTemplate = fs.readFileSync(samplesTemplatePath, 'utf-8');
+      const sampleItemTemplate = fs.readFileSync(sampleItemTemplatePath, 'utf-8');
+      const sampleOutputTemplate = fs.readFileSync(sampleOutputTemplatePath, 'utf-8');
+
+      // Build samples section from templates
+      let samplesSection = '';
+      if (samples.length > 0) {
+        const items = samples.map((s: any, i: number) => {
+          const outputBlock = s.output
+            ? sampleOutputTemplate.replace(/{{output}}/g, escapeHtml(s.output))
+            : '';
+          return sampleItemTemplate
+            .replace(/{{index}}/g, String(i + 1))
+            .replace(/{{input}}/g, escapeHtml(s.input))
+            .replace(/{{output_block}}/g, outputBlock);
+        }).join('');
+        samplesSection = samplesTemplate.replace(/{{sample_items}}/g, items);
+      }
+
+      // Replace placeholders in main template
       html = html.replace(/{{nonce}}/g, nonce);
       html = html.replace(/{{title}}/g, escapeHtml(this._problem.title));
       html = html.replace(/{{difficulty}}/g, escapeHtml(String(this._problem.difficulty || 'Unknown')));
       html = html.replace(/{{status_meta}}/g,
         this._problem.status ? ` | Status: <strong>${escapeHtml(this._problem.status)}</strong>` : ''
       );
-
-      // Generate sample buttons
-      const sampleButtons = samples.map((s, i) =>
-        `<button class="run-sample" data-idx="${i}">Run Sample ${i+1}</button>`
-      ).join('');
-
-      // Generate samples section
-      const samplesSection = samples.length > 0 ? `
-        <div class="samples-container">
-          <h2>Sample Test Cases</h2>
-          ${samples.map((s, i) => `
-            <div class="sample-case">
-              <h3>Sample ${i + 1}</h3>
-              <p><strong>Input:</strong></p>
-              <pre>${escapeHtml(s.input)}</pre>
-              ${s.output ? `<p><strong>Output:</strong></p><pre>${escapeHtml(s.output)}</pre>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      ` : '';
-
-      // Replace content placeholders
-      html = html.replace(/{{sample_buttons}}/g, sampleButtons);
+      html = html.replace(/{{sample_buttons}}/g, '');
       html = html.replace(/{{samples_section}}/g, samplesSection);
-
-      // Replace content
       html = html.replace(/{{content}}/g, contentHtml);
 
       return html;
     } catch (error) {
-      // Fallback to inline HTML if template file is not found
-      console.warn('Template file not found, using inline HTML:', error);
-
-      // Generate sample buttons for fallback
-      const fallbackSampleButtons = samples.map((s, i) =>
-        `<button class="run-sample" data-idx="${i}">Run Sample ${i+1}</button>`
-      ).join('');
-
-      // Generate samples section for fallback
-      const fallbackSamplesSection = samples.length > 0 ? `
-        <div class="samples-container">
-          <h2>Sample Test Cases</h2>
-          ${samples.map((s, i) => `
-            <div class="sample-case">
-              <h3>Sample ${i + 1}</h3>
-              <p><strong>Input:</strong></p>
-              <pre>${escapeHtml(s.input)}</pre>
-              ${s.output ? `<p><strong>Output:</strong></p><pre>${escapeHtml(s.output)}</pre>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      ` : '';
-
-      return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${escapeHtml(this._problem.title)}</title>
-<style>
-  body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-editor-foreground); background: var(--vscode-editor-background); }
-  h1 { font-size: 1.4rem; margin-bottom: 0.2rem; }
-  .meta { color: var(--vscode-descriptionForeground); margin-bottom: 12px; line-height: 1.5; }
-  .difficulty-Easy { color: #6bb341; }
-  .difficulty-Medium { color: #d49a00; }
-  .difficulty-Hard { color: #e44258; }
-  .controls { margin-bottom: 12px; display:flex; gap:8px; flex-wrap:wrap; }
-  button {
-    padding: 8px 16px;
-    border-radius: 4px;
-    border: none;
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background 0.2s ease;
-  }
-  button:hover { background: var(--vscode-button-hoverBackground); }
-  .sample { border:1px dashed var(--vscode-editorGutter-background); padding: 10px; margin-bottom:8px; border-radius:6px; }
-  .content img { max-width:100%; height:auto; }
-  pre { background: rgba(0,0,0,0.06); padding:8px; border-radius:6px; overflow:auto; }
-  .samples-container { margin-top: 20px; }
-  .sample-case { background: var(--vscode-editorGroup-background); padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--vscode-editorGroup-border); }
-  .sample-case h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
-  .sample-case pre { background: var(--vscode-textArea-background); padding: 10px; border-radius: 4px; }
-</style>
-</head>
-<body>
-  <h1>${escapeHtml(this._problem.title)}</h1>
-  <div class="meta">
-    Difficulty: <strong class="difficulty-${this._problem.difficulty}">${escapeHtml(String(this._problem.difficulty || 'Unknown'))}</strong>
-    ${this._problem.status ? ` | Status: <strong>${escapeHtml(this._problem.status)}</strong>` : ''}
-  </div>
-
-  <div class="controls">
-    <button id="open">Open in Editor</button>
-    <button id="copy">Copy Template</button>
-    ${fallbackSampleButtons}
-  </div>
-
-  <div class="content">${contentHtml}</div>
-
-  ${fallbackSamplesSection}
-
-  <script nonce="${nonce}">
-    const vscode = acquireVsCodeApi();
-    document.getElementById('open').addEventListener('click', () => {
-      vscode.postMessage({ command: 'openInEditor' });
-    });
-    document.getElementById('copy').addEventListener('click', () => {
-      vscode.postMessage({ command: 'copyTemplate' });
-    });
-    document.querySelectorAll('.run-sample').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = Number(btn.getAttribute('data-idx') || 0);
-        vscode.postMessage({ command: 'runSample', sampleIndex: idx });
-      });
-    });
-  </script>
-</body>
-</html>`;
+      console.warn('Failed to read HTML templates:', error);
+      return '';
     }
   }
 }

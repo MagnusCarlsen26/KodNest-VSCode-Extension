@@ -12,7 +12,6 @@
   .difficulty-Easy { color: #6bb341; } /* Green */
   .difficulty-Medium { color: #d49a00; } /* Yellow */
   .difficulty-Hard { color: #e44258; } /* Red */
-  .controls { margin-bottom: 12px; display:flex; gap:8px; flex-wrap:wrap; }
   button {
     padding: 8px 16px;
     border-radius: 4px;
@@ -23,12 +22,30 @@
     font-size: 0.9em;
     transition: background 0.2s ease;
   }
+  .open-editor-btn {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 10;
+  }
   button:hover { background: var(--vscode-button-hoverBackground); }
   .sample { border:1px dashed var(--vscode-editorGutter-background); padding: 10px; margin-bottom:8px; border-radius:6px; }
   .content img { max-width:100%; height:auto; }
   pre { background: rgba(0,0,0,0.06); padding:8px; border-radius:6px; overflow:auto; }
   .samples-container { margin-top: 20px; }
-  .sample-case { background: var(--vscode-editorGroup-background); padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 1px solid var(--vscode-editorGroup-border); }
+  .sample-case {
+    background: var(--vscode-textBlockQuote-background);
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid var(--vscode-editorGroup-border);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+  .samples-container-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
   .sample-case h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
   .sample-case pre { background: var(--vscode-textArea-background); padding: 10px; border-radius: 4px; }
 </style>
@@ -40,11 +57,7 @@
     {{status_meta}}
   </div>
 
-  <div class="controls">
-    <button id="open">Open in Editor</button>
-    <button id="copy">Copy Template</button>
-    {{sample_buttons}}
-  </div>
+  <button id="open" class="open-editor-btn">Open in Editor</button>
 
   <div class="content">{{content}}</div>
 
@@ -55,15 +68,7 @@
     document.getElementById('open').addEventListener('click', () => {
       vscode.postMessage({ command: 'openInEditor' });
     });
-    document.getElementById('copy').addEventListener('click', () => {
-      vscode.postMessage({ command: 'copyTemplate' });
-    });
-    document.querySelectorAll('.run-sample').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = Number(btn.getAttribute('data-idx') || 0);
-        vscode.postMessage({ command: 'runSample', sampleIndex: idx });
-      });
-    });
+    // removed copy and run-sample controls
   </script>
 </body>
 </html>

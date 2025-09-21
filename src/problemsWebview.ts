@@ -81,6 +81,18 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
     return '';
   }
 
+  private getStatusClass(status: string | undefined): string {
+    if (!status) {
+      return '';
+    }
+
+    const normalizedStatus = status.toLowerCase().trim();
+    if (normalizedStatus === 'completed' || normalizedStatus === 'solved' || normalizedStatus === 'done') {
+      return 'status-completed';
+    }
+    return 'status-other';
+  }
+
   private getMetaStyle(status: string | undefined, topic: string | undefined): string {
     const statusMeta = this.getStatusMeta(status);
 
@@ -160,6 +172,7 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
             .replace(/{{problem_title}}/g, escapeHtml(p.title))
             .replace(/{{difficulty}}/g, escapeHtml(p.difficulty))
             .replace(/{{status_indicator}}/g, this.getStatusIndicator(p.status))
+            .replace(/{{status_class}}/g, this.getStatusClass(p.status))
             .replace(/{{status_meta}}/g, this.getStatusMeta(p.status))
             .replace(/{{topic_meta}}/g, p.topic ? ` | Topic: ${escapeHtml(p.topic)}` : '')
             .replace(/{{meta_style}}/g, this.getMetaStyle(p.status, p.topic));
@@ -183,7 +196,11 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       }).join('');
 
       // Generate empty message
-      const emptyMessage = filteredModules.length === 0 ? `<div class="empty">No problems found.</div>` : '';
+      const emptyTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'empty.html');
+      const emptyTemplate = fs.readFileSync(emptyTemplatePath, 'utf-8');
+      const emptyMessage = filteredModules.length === 0
+        ? emptyTemplate.replace(/{{message}}/g, 'No problems found.')
+        : '';
 
       // Replace content placeholders
       html = html.replace(/{{modules_content}}/g, modulesContent);
