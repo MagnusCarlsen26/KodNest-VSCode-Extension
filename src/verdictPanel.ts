@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { Verdict } from './types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class VerdictPanel {
   public static currentPanel: VerdictPanel | undefined;
@@ -60,12 +62,18 @@ export class VerdictPanel {
     }
   }
 
-  private _update(): void {
+  private async _update(): Promise<void> {
     const webview = this._panel.webview;
-    webview.html = this._getHtmlForWebview();
+    webview.html = await this._getHtmlForWebview();
   }
 
-  private _getHtmlForWebview(): string {
+  private async _getHtmlForWebview(): Promise<string> {
+
+    console.log(this._verdicts);
+
+    const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'templates', 'verdict.html');
+    let htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
+
     const rows = this._verdicts.map((v, i) => `
       <div class="case">
         <div class="row"><span class="label">Test ${i + 1}:</span> <span class="status ${this._statusClass(v.status)}">${this._escape(v.status)}</span></div>
@@ -79,53 +87,28 @@ export class VerdictPanel {
     `).join('');
 
     const overall = this._computeOverallStatus();
+    const overallClass = overall === 'Accepted' ? 'ok' : 'fail';
 
-    return `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Verdict</title>
-        <style>
-          body { font-family: var(--vscode-font-family); padding: 12px; color: var(--vscode-foreground); }
-          .header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
-          .badge { padding:2px 8px; border-radius: 999px; font-weight: 600; }
-          .ok { background: #1b5e20; color: #fff; }
-          .fail { background: #b71c1c; color: #fff; }
-          .case { border: 1px solid var(--vscode-editorWidget-border); border-radius:6px; padding:8px; margin-bottom:8px; }
-          .row { margin: 4px 0; }
-          .label { color: var(--vscode-descriptionForeground); margin-right: 6px; }
-          details { margin-top: 6px; }
-          pre { background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); padding: 8px; border-radius: 4px; overflow: auto; }
-          .status.ok { color: #2e7d32; font-weight: 600; }
-          .status.fail { color: #d32f2f; font-weight: 600; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h2 style="margin:0;">Verdict</h2>
-          <span class="badge ${overall === 'Accepted' ? 'ok' : 'fail'}">${overall}</span>
-        </div>
-        ${rows}
-      </body>
-      </html>
-    `;
+    htmlContent = htmlContent.replace('{{overallClass}}', overallClass);
+    htmlContent = htmlContent.replace('{{overallStatus}}', overall);
+    htmlContent = htmlContent.replace('{{verdictRows}}', rows);
+
+    return htmlContent;
   }
 
   private _computeOverallStatus(): string {
-    if (!this._verdicts || this._verdicts.length === 0) return 'Pending';
+    if (!this._verdicts || this._verdicts.length === 0) { return 'Pending'; }
     const allOk = this._verdicts.every(v => (v.status || '').toLowerCase().includes('accepted'));
     return allOk ? 'Accepted' : 'Failed';
   }
 
   private _statusClass(status: string): string {
-    return (status || '').toLowerCase().includes('accepted') ? 'ok' : 'fail';
+    if ((status || '').toLowerCase().includes('accepted')) { return 'ok'; } else { return 'fail'; }
   }
 
   private _escape(text: string): string {
-    if (!text) return '';
-    return text
+    if (!text) { return ''; }
+    return String(text)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
