@@ -15,7 +15,23 @@ export function normalizeToProblemMeta(input: unknown): ProblemMeta {
   const moduleDescription = asAny?.moduleDescription;
   const moduleDifficulty = asAny?.moduleDifficulty;
   const moduleCategoryTitle = asAny?.moduleCategoryTitle;
-  return { id, title, difficulty, content_markdown, samples, sectionId, status, topic, moduleName, moduleDescription, moduleDifficulty, moduleCategoryTitle };
+  return { id, title, difficulty, content_markdown, samples, sectionId, status, topic, moduleName, moduleDescription, moduleDifficulty, moduleCategoryTitle, languages: asAny?.languages };
+}
+
+// Helper to get file extension from language name
+function getFileExtension(languageName: string): string {
+  switch (languageName.toLowerCase()) {
+    case 'java (openjdk 13.0.1)': return '.java';
+    case 'python': return '.py';
+    case 'javascript': return '.js';
+    case 'typescript': return '.ts';
+    default: return '.txt';
+  }
+}
+
+// Helper to sanitize title for filename
+function sanitizeFilename(title: string): string {
+  return title.replace(/[^a-z0-9_\-]/gi, '_');
 }
 
 export function parseProblemFromActiveEditor(): ProblemMeta | undefined {
@@ -29,27 +45,71 @@ export function parseProblemFromActiveEditor(): ProblemMeta | undefined {
   return { id: 'unknown', title: editor.document.fileName, difficulty: 'Unknown', content_markdown: '(Description not available)' };
 }
 
-export async function createEditorForProblem(context: vscode.ExtensionContext, problem: ProblemMeta): Promise<void> {
-  const docContent = `// ${problem.title} (${problem.difficulty || 'Unknown'})\n// Problem ID: ${problem.id}\n// Write your solution here\n\nfunction solution() {\n  // TODO: implement\n}\n\n`;
-  const untitled = vscode.Uri.parse(`untitled:${problem.id}.js`);
+export async function createEditorForProblem(
+  context: vscode.ExtensionContext,
+  problem: ProblemMeta,
+): Promise<void> {
+
+  //   "title", 
+  //   "difficulty", 
+  //   "content_markdown", 
+  //   "samples", 
+  //   "sectionId", 
+  //   "status", 
+  //   "topic", 
+  //   "moduleName", 
+  //   "moduleDescription", 
+  //   "moduleDifficulty", 
+  //   "moduleCategoryTitle" ]
+
   try {
-    const doc = await vscode.workspace.openTextDocument(untitled);
-    const edit = new vscode.WorkspaceEdit();
-    edit.insert(untitled, new vscode.Position(0, 0), docContent);
-    await vscode.workspace.applyEdit(edit);
-    await vscode.window.showTextDocument(doc);
-    return;
+    const boilerplate = problem.languages?.[0]?.boilerplate;
+    const language = problem.languages?.[0]?.name;
+
+    if (!boilerplate) {
+      vscode.window.showErrorMessage(`No boilerplate code available for problem: ${problem.title}`);
+      return;
+    }
+
+    const fileExtension = getFileExtension(language || 'unknown');
+    const sanitizedTitle = sanitizeFilename(problem.title);
+    const fileName = `${sanitizedTitle}${fileExtension}`;
+
+    // Determine the path within the extension's workspace storage
+    let baseStorageUri: vscode.Uri | undefined = context.storageUri;
+    let storageType = 'workspace';
+
+    if (!baseStorageUri) {
+      baseStorageUri = context.globalStorageUri;
+      storageType = 'global';
+      if (!baseStorageUri) {
+        vscode.window.showErrorMessage('Neither workspace nor global storage is available.');
+        return;
+      }
+      vscode.window.showInformationMessage(`Workspace storage not available. Using global storage at: ${baseStorageUri.fsPath}`);
+    }
+    
+    const solutionsDir = vscode.Uri.joinPath(baseStorageUri, 'solutions');
+    const fileUri = vscode.Uri.joinPath(solutionsDir, fileName);
+
+    // Ensure the directory exists
+    await vscode.workspace.fs.createDirectory(solutionsDir);
+
+    // Check if the file already exists
+    try {
+      await vscode.workspace.fs.stat(fileUri);
+      // File exists, open it
+      const document = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(document, { preview: false });
+      vscode.window.showInformationMessage(`Opened existing file: ${fileName}`);
+    } catch (e) {
+      // File does not exist, create it with boilerplate
+      await vscode.workspace.fs.writeFile(fileUri, Buffer.from(boilerplate, 'utf8'));
+      const document = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(document, { preview: false });
+      vscode.window.showInformationMessage(`Created new file: ${fileName}`);
+    }
   } catch (err) {
-    // fall through to workspace file creation
-  }
-  try {
-    const newUri = vscode.Uri.joinPath(context.extensionUri, `${problem.id}.js`);
-    await vscode.workspace.fs.writeFile(newUri, Buffer.from(docContent, 'utf8'));
-    const doc2 = await vscode.workspace.openTextDocument(newUri);
-    await vscode.window.showTextDocument(doc2);
-  } catch {
-    vscode.window.showErrorMessage('Failed to create editor for problem.');
+    vscode.window.showErrorMessage(`Failed to create editor for problem: ${err}`);
   }
 }
-
-

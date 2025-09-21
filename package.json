@@ -3,6 +3,7 @@
   "displayName": "VSCode-Extension",
   "description": "",
   "version": "0.0.1",
+  "publisher": "your-publisher-id",
   "engines": {
     "vscode": "^1.104.0"
   },

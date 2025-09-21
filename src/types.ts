@@ -3,6 +3,12 @@ export interface SampleCase {
   output?: string;
 }
 
+export interface Language {
+  id: string;
+  name: string;
+  boilerplate: string;
+}
+
 export interface ProblemMeta {
   id: string;
   title: string;
@@ -16,6 +22,7 @@ export interface ProblemMeta {
   moduleDescription?: string;
   moduleDifficulty?: string;
   moduleCategoryTitle?: string;
+  languages?: Language[];
 }
 
 export interface Module {
@@ -42,6 +49,7 @@ export interface Problem {
   moduleDescription?: string;
   moduleDifficulty?: string;
   moduleCategoryTitle?: string;
+  languages?: Language[];
 }
 
 export interface RunPayload {

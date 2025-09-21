@@ -49,7 +49,8 @@ export async function activate(context: vscode.ExtensionContext) {
           moduleName: problem.moduleName,
           moduleDescription: problem.moduleDescription,
           moduleDifficulty: problem.moduleDifficulty,
-          moduleCategoryTitle: problem.moduleCategoryTitle
+          moduleCategoryTitle: problem.moduleCategoryTitle,
+          languages: problem.languages // Include the languages property
         };
       } else {
         // Fallback to creating a basic meta from the ID
@@ -59,7 +60,6 @@ export async function activate(context: vscode.ExtensionContext) {
       // Use the existing normalization logic for other types
       meta = normalizeToProblemMeta(problemLike);
     }
-
     ProblemDescriptionPanel.createOrShow(context.extensionUri, meta);
   });
 

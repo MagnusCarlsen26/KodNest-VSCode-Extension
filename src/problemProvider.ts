@@ -52,7 +52,8 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
                         moduleDifficulty: moduleData.module.difficulty,
                         moduleCategoryTitle: moduleData.module.category.title,
                         content_markdown: item.description,
-                        samples: samples
+                        samples: samples,
+                        languages: item.languages || []
                     } as unknown as Problem;
 
                     problemsForModule.push(p);
