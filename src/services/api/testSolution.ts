@@ -6,6 +6,7 @@ import { getApiHeaders } from '../../constants/apiHeaders';
 import { convertToBase64 } from '../../utils/convertToFromBase64';
 import { getUserId } from '../auth/getUserId';
 import { getSubmissionByExecutionId } from './getSubmissionByExecutionId';
+import { VerdictPanel } from '../../verdictPanel';
 import { getQuestionContextById } from '../../utils/lookup';
 import { getSubmissions } from './getSubmissions';
 
@@ -106,7 +107,8 @@ async function sendTestSolution(
     const submissionIds = await getSubmissions(context, activeProblem.id, moduleId);
     const verdicts = await getSubmissionByExecutionId(context, submissionIds[0]);
 
-    console.log("Verdicts:", verdicts);
+    // Open verdict panel on the right. If no split, create it and preserve left editor.
+    await VerdictPanel.showOnRight(context.extensionUri, verdicts);
 
 }
 
