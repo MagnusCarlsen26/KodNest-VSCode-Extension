@@ -6,7 +6,7 @@
     <title>Verdict</title>
     <style>
         body { font-family: var(--vscode-font-family); padding: 12px; color: var(--vscode-foreground); }
-        .header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+        .header { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-flow: row wrap; }
         .badge { padding:2px 8px; border-radius: 999px; font-weight: 600; }
         .ok { background: #1b5e20; color: #fff; }
         .fail { background: #b71c1c; color: #fff; }
@@ -15,8 +15,8 @@
         .label { color: var(--vscode-descriptionForeground); margin-right: 6px; }
         details { margin-top: 6px; }
         pre { background: var(--vscode-editor-background); color: var(--vscode-editor-foreground); padding: 8px; border-radius: 4px; overflow: auto; }
-        .status.ok { color: #2e7d32; font-weight: 600; }
-        .status.fail { color: #d32f2f; font-weight: 600; }
+        .status.ok { color: #2e7d32; font-weight: 600; background: transparent; }
+        .status.fail { color: #d32f2f; font-weight: 600; background: transparent; }
     </style>
 </head>
 <body>
@@ -24,7 +24,7 @@
         <h2 style="margin:0;">Verdict</h2>
         <span class="badge {{overallClass}}">{{overallStatus}}</span>
     </div>
-    <div id="verdict-rows">
+    <div id="verdict-rows" style="display: flex; flex-wrap: wrap; gap: 8px;">
         {{verdictRows}}
     </div>
 </body>

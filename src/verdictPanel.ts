@@ -69,22 +69,37 @@ export class VerdictPanel {
 
   private async _getHtmlForWebview(): Promise<string> {
 
-    console.log(this._verdicts);
+    // {
+    //   expectedOutput: '[0, 1]\n',
+    //   compileOutput: '',
+    //   status: 'Wrong Answer',
+    //   stdin: '1\n',
+    //   stdout: '[]\n',
+    //   stderr: '',
+    //   time: 116
+    // }
 
     const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'templates', 'verdict.html');
     let htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
 
-    const rows = this._verdicts.map((v, i) => `
+    const rows = this._verdicts.map((v, i) => {
+      const lowerCaseStatus = (v.status || '').toLowerCase();
+      const shouldExpandDetails = lowerCaseStatus === 'wrong answer' ||
+                                  lowerCaseStatus.includes('error') ||
+                                  lowerCaseStatus.includes('failed') ||
+                                  lowerCaseStatus.includes('time limit exceeded');
+      const openAttribute = shouldExpandDetails ? 'open' : '';
+      return `
       <div class="case">
         <div class="row"><span class="label">Test ${i + 1}:</span> <span class="status ${this._statusClass(v.status)}">${this._escape(v.status)}</span></div>
-        ${v.stdin ? `<details><summary>stdin</summary><pre>${this._escape(v.stdin)}</pre></details>` : ''}
-        ${v.stdout ? `<details><summary>stdout</summary><pre>${this._escape(v.stdout)}</pre></details>` : ''}
-        ${v.expectedOutput ? `<details><summary>expected</summary><pre>${this._escape(v.expectedOutput)}</pre></details>` : ''}
-        ${v.stderr ? `<details><summary>stderr</summary><pre>${this._escape(v.stderr)}</pre></details>` : ''}
-        ${v.compileOutput ? `<details><summary>compile output</summary><pre>${this._escape(v.compileOutput)}</pre></details>` : ''}
+        ${v.stdin ? `<details ${openAttribute}><summary>stdin</summary><code>${this._escape(v.stdin)}</code></details>` : ''}
+        ${v.stdout ? `<details ${openAttribute}><summary>stdout</summary><code>${this._escape(v.stdout)}</code></details>` : ''}
+        ${v.expectedOutput ? `<details ${openAttribute}><summary>expected</summary><code>${this._escape(v.expectedOutput)}</code></details>` : ''}
+        ${v.stderr ? `<details ${openAttribute}><summary>stderr</summary><code>${this._escape(v.stderr)}</code></details>` : ''}
+        ${v.compileOutput ? `<details ${openAttribute}><summary>compile output</summary><code>${this._escape(v.compileOutput)}</code></details>` : ''}
         ${v.time ? `<div class="row"><span class="label">time:</span> <code>${this._escape(v.time)}</code></div>` : ''}
       </div>
-    `).join('');
+    `;}).join('');
 
     const overall = this._computeOverallStatus();
     const overallClass = overall === 'Accepted' ? 'ok' : 'fail';

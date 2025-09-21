@@ -2,13 +2,14 @@ import * as vscode from 'vscode';
 import { ProblemProvider } from './problemProvider';
 import { KodnestCodeLensProvider } from './codeLensProvider';
 import { ProblemDescriptionPanel } from './descriptionPanel';
-import { ProblemMeta } from './types';
+import { ProblemMeta, Verdict } from './types';
 import { COMMAND, registerCommand } from './utils/commands';
 import { normalizeToProblemMeta, parseProblemFromActiveEditor, createEditorForProblem } from './utils/problem';
 import { ProblemsWebviewProvider } from './problemsWebview';
 import { askAuthTokenAndStore } from './services/auth/askAuthTokenAndStore';
 import { askUserIdAndStore } from './services/auth/askUserId';
 import { testSolution } from './services/api/testSolution';
+import { VerdictPanel } from './verdictPanel';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -139,6 +140,49 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand(context, COMMAND.SUBMIT, async () => {
     // todo: later change this function name
     return await testSolution(context);
+  });
+
+  // Temporary: Show Verdict panel with mock data for UI testing
+  registerCommand(context, COMMAND.SHOW_MOCK_VERDICT, async () => {
+    const mockVerdicts: Verdict[] = [
+      {
+        expectedOutput: '[0, 1]\n',
+        compileOutput: '',
+        status: 'Wrong Answer',
+        stdin: '1\n',
+        stdout: '[]\n',
+        stderr: '',
+        time: '116'
+      },
+      {
+        expectedOutput: '[0, 1, 1, 2, 1, 2, 2, 3, 1]\n',
+        compileOutput: '',
+        status: 'Wrong Answer',
+        stdin: '8\n',
+        stdout: '[]\n',
+        stderr: '',
+        time: '110'
+      },
+      {
+        expectedOutput: '[0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2]\n',
+        compileOutput: '',
+        status: 'Wrong Answer',
+        stdin: '10\n',
+        stdout: '[]\n',
+        stderr: '',
+        time: '117'
+      },
+      {
+        expectedOutput: '[0]\n',
+        compileOutput: '',
+        status: 'Wrong Answer',
+        stdin: '0\n',
+        stdout: '[]\n',
+        stderr: '',
+        time: '131'
+      }
+    ];
+    VerdictPanel.createOrShow(context.extensionUri, mockVerdicts);
   });
 
   // CREATE_EDITOR command - create an editor for the provided ProblemMeta

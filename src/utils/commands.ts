@@ -10,7 +10,8 @@ export const COMMAND = {
   SET_AUTH_TOKEN: 'kodnest.setAuthToken',
   GET_AUTH_TOKEN: 'kodnest.getAuthToken',
   SET_USER_ID: 'kodnest.setUserId',
-  GET_USER_ID: 'kodnest.getUserId'
+  GET_USER_ID: 'kodnest.getUserId',
+  SHOW_MOCK_VERDICT: 'kodnest.showMockVerdict'
 } as const;
 
 export type Values<T> = T[keyof T];
