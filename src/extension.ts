@@ -10,6 +10,11 @@ import { ProblemsWebviewProvider } from './problemsWebview';
 export async function activate(context: vscode.ExtensionContext) {
   const problemProvider = new ProblemProvider();
 
+  // Check if auth token exists, if not, prompt the user
+  if (!(await context.secrets.get('kodnestAuthToken'))) {
+    promptForAuthTokenAndStore(context);
+  }
+
   // Register sidebar Webview View instead of TreeDataProvider
   const webviewProvider = new ProblemsWebviewProvider(context.extensionUri, problemProvider);
   context.subscriptions.push(
@@ -28,6 +33,21 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand(context, COMMAND.REFRESH_PROBLEMS, () => {
     problemProvider.refresh();
     webviewProvider.refresh();
+  });
+
+  // Command to ask for and securely store the KodNest Auth Token
+  registerCommand(context, COMMAND.SET_AUTH_TOKEN, async () => {
+    await promptForAuthTokenAndStore(context);
+  });
+
+  // Command to retrieve and display the stored KodNest Auth Token (for testing/debug)
+  registerCommand(context, COMMAND.GET_AUTH_TOKEN, async () => {
+    const token = await context.secrets.get('kodnestAuthToken');
+    if (token) {
+      vscode.window.showInformationMessage(`Stored KodNest token: ${token}`);
+    } else {
+      vscode.window.showInformationMessage('No KodNest authentication token found.');
+    }
   });
 
   registerCommand(context, COMMAND.OPEN_PROBLEM, (problemLike: unknown) => {
@@ -175,6 +195,21 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage('Failed to create editor: ' + String(err));
     }
   });
+}
+
+async function promptForAuthTokenAndStore(context: vscode.ExtensionContext) {
+  const token = await vscode.window.showInputBox({
+    prompt: 'Enter your KodNest authentication token',
+    ignoreFocusOut: true, // Keep the input box open even if focus is lost
+    password: true // Mask the input
+  });
+
+  if (token) {
+    await context.secrets.store('kodnestAuthToken', token);
+    vscode.window.showInformationMessage('KodNest authentication token stored securely.');
+  } else {
+    vscode.window.showInformationMessage('KodNest authentication token not set.');
+  }
 }
 
 // Try to parse ProblemMeta from a document using your helper. If it fails, return undefined.

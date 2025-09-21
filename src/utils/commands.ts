@@ -6,7 +6,9 @@ export const COMMAND = {
   SHOW_DESCRIPTION: 'kodnest.showDescription',
   RUN: 'kodnest.run',
   SUBMIT: 'kodnest.submit',
-  CREATE_EDITOR: 'kodnest.createEditor'
+  CREATE_EDITOR: 'kodnest.createEditor',
+  SET_AUTH_TOKEN: 'kodnest.setAuthToken',
+  GET_AUTH_TOKEN: 'kodnest.getAuthToken'
 } as const;
 
 export type Values<T> = T[keyof T];
