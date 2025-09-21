@@ -167,10 +167,10 @@ export class ProblemDescriptionPanel {
 
       // Read templates from src/templates to keep a single source of truth
       const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates');
-      const templatePath = path.join(templatesDir, 'description.html');
-      const samplesTemplatePath = path.join(templatesDir, 'samples.html');
-      const sampleItemTemplatePath = path.join(templatesDir, 'sample-item.html');
-      const sampleOutputTemplatePath = path.join(templatesDir, 'sample-output.html');
+      const templatePath = path.join(templatesDir, 'problemDescriptionView', 'description.html');
+      const samplesTemplatePath = path.join(templatesDir, 'problemDescriptionView', 'samples.html');
+      const sampleItemTemplatePath = path.join(templatesDir, 'problemDescriptionView', 'sample-item.html');
+      const sampleOutputTemplatePath = path.join(templatesDir, 'problemDescriptionView', 'sample-output.html');
 
       let html = fs.readFileSync(templatePath, 'utf-8');
       const samplesTemplate = fs.readFileSync(samplesTemplatePath, 'utf-8');

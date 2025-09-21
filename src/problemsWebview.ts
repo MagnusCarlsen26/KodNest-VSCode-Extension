@@ -147,7 +147,7 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       // Read the HTML template
       const fs = await import('fs');
       const path = await import('path');
-      const templatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'problems.html');
+      const templatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'sidebar', 'problems.html');
       let html = fs.readFileSync(templatePath, 'utf-8');
 
       // Replace placeholders
@@ -155,8 +155,8 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       html = html.replace(/{{query}}/g, escapeHtml(query));
 
       // Read component templates
-      const moduleTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'module.html');
-      const problemTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'problem.html');
+      const moduleTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'sidebar', 'module.html');
+      const problemTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'templates', 'sidebar', 'problem.html');
 
       const moduleTemplate = fs.readFileSync(moduleTemplatePath, 'utf-8');
       const problemTemplate = fs.readFileSync(problemTemplatePath, 'utf-8');
