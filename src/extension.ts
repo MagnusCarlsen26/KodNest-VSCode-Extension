@@ -87,7 +87,6 @@ export async function activate(context: vscode.ExtensionContext) {
     const maybePayload = payload as RunPayload | undefined;
     if (maybePayload && typeof maybePayload === 'object' && 'problem' in maybePayload && maybePayload.problem) {
       const idx = Number(maybePayload.sampleIndex ?? 0);
-      vscode.window.showInformationMessage(`Run sample ${idx + 1} for ${maybePayload.problem.id}`);
       return;
     }
     const editor = vscode.window.activeTextEditor;
@@ -95,11 +94,9 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage('Open a problem file to run.');
       return;
     }
-    vscode.window.showInformationMessage(`Running ${editor.document.fileName} (no sample).`);
   });
 
   registerCommand(context, COMMAND.SUBMIT, (doc: vscode.TextDocument) => {
-    vscode.window.showInformationMessage(`Submitting ${doc.fileName}...`);
   });
 
   registerCommand(context, COMMAND.CREATE_EDITOR, async (problem: ProblemMeta) => {

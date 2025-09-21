@@ -109,12 +109,10 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       vscode.window.showInformationMessage('Problems Webview: View not yet initialized.');
       return;
     }
-    vscode.window.showInformationMessage('Rendering problems...');
 
     try {
       const nonce = getNonce();
       const allModules = this.problemProvider.getChildren() as Module[];
-      vscode.window.showInformationMessage(`[Kodnest] ${allModules.length} modules found`);
 
       // Filter modules and problems based on query
       let filteredModules = allModules;
