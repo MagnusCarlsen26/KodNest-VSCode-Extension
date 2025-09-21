@@ -202,6 +202,9 @@ export class ProblemDescriptionPanel {
       html = html.replace(/{{sample_buttons}}/g, '');
       html = html.replace(/{{samples_section}}/g, samplesSection);
       html = html.replace(/{{content}}/g, contentHtml);
+      html = html.replace(/{{problem_id}}/g, escapeHtml(this._problem.id));
+      html = html.replace(/{{module_id}}/g, escapeHtml(this._problem.moduleId || ''));
+      html = html.replace(/{{section_id}}/g, escapeHtml(this._problem.sectionId || ''));
 
       return html;
     } catch (error) {
