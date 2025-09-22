@@ -10,9 +10,13 @@ import { askAuthTokenAndStore } from './services/auth/askAuthTokenAndStore';
 import { askUserIdAndStore } from './services/auth/askUserId';
 import { testSolution } from './services/api/testSolution';
 import { VerdictPanel } from './verdictPanel';
+import { downloadDb } from './services/db/downloadDb';
 
 
 export async function activate(context: vscode.ExtensionContext) {
+
+  await downloadDb(context);
+
   const problemProvider = new ProblemProvider();
 
   // Check if auth token exists, if not, prompt the user
