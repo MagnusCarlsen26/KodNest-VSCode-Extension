@@ -1,11 +1,14 @@
 {
-    "baseUrl": "https://api.kodnest.in/assessment-service/api/v2/consumers",
+    "baseUrl": "https://api.kodnest.in",
 
-    "testSolution": "/practices/{{moduleId}}/execute",
-    "submitSolution": "/practices/{{moduleId}}/submit",
+    "testSolution": "/assessment-service/api/v2/consumers/practices/{{moduleId}}/execute",
+    "submitSolution": "/assessment-service/api/v2/consumers/practices/{{moduleId}}/submit",
 
-    "getSubmissions": "/practices/{{problemId}}/{{userId}}/submissions?practice_id={{moduleId}}&page=0&page_size=10",
-    "getSubmissionByExecutionId": "/practices/submissions/{{executionId}}",
+    "getSubmissions": "/assessment-service/api/v2/consumers/practices/{{problemId}}/{{userId}}/submissions?practice_id={{moduleId}}&page=0&page_size=10",
+    "getSubmissionByExecutionId": "/assessment-service/api/v2/consumers/practices/submissions/{{executionId}}",
 
-    "getScores": "/practices/{{moduleId}}/{{userId}}/questions?page=0&page_size=1000&tab=all"
+    "getScores": "/assessment-service/api/v2/consumers/practices/{{moduleId}}/{{userId}}/questions?page=0&page_size=1000&tab=all",
+
+    "getClassInfo": "/utility-service/api/v2/attendance/courses/{{courseId}}/{{userId}}"
+
 }

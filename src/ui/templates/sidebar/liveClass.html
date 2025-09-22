@@ -29,98 +29,55 @@
       flex-direction: column;
       overflow-y: auto;
     }
-    .controls {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-      margin-bottom: 2px;
-    }
-    input[type="search"] {
-      flex: 1;
-      padding: 4px 6px;
-      border-radius: 2px;
-      border: 1px solid var(--vscode-input-border);
-      background: var(--vscode-input-background);
-      color: var(--vscode-input-foreground);
-      font-size: 0.85em;
-    }
-    button {
-      padding: 4px 8px;
-      border-radius: 2px;
-      border: none;
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      cursor: pointer;
-      font-size: 0.85em;
-    }
-    button:hover {
-      background: var(--vscode-button-hoverBackground);
-    }
     .class-header {
       padding: 8px 12px;
       background: var(--vscode-editorGroupHeader-tabsBackground);
       border-radius: 2px;
       border: 1px solid var(--vscode-editorGroup-border);
       margin-bottom: 4px;
+      cursor: pointer;
     }
     .class-title {
       font-weight: 600;
       font-size: 0.9em;
-      margin-bottom: 4px;
     }
-    .class-meta {
+    .class-details {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--vscode-editorGroup-border);
+    }
+    .session-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
       font-size: 0.75em;
       color: var(--vscode-descriptionForeground);
-      margin-bottom: 2px;
     }
-    .class-status {
+    .session-item {
+      white-space: nowrap;
+    }
+    .attendance-progress-container {
+      width: 100%;
+      background-color: var(--vscode-editorGroup-border);
+      border-radius: 3px;
+      height: 12px;
+      position: relative;
+    }
+    .attendance-progress-bar {
+      height: 100%;
+      background-color: #6bb341; /* Green for attendance */
+      border-radius: 3px;
+      transition: width 0.5s ease-in-out;
+    }
+    .attendance-percentage {
+      position: absolute;
+      width: 100%;
+      text-align: center;
       font-size: 0.7em;
+      line-height: 12px;
+      color: var(--vscode-editor-foreground);
       font-weight: bold;
-      padding: 2px 6px;
-      border-radius: 2px;
-      display: inline-block;
-    }
-    .status-live {
-      background: #e44258;
-      color: white;
-    }
-    .status-upcoming {
-      background: #d49a00;
-      color: white;
-    }
-    .status-completed {
-      background: #6bb341;
-      color: white;
-    }
-    .class-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
-    }
-    .class-info {
-      flex: 1;
-    }
-    .class-actions {
-      flex-shrink: 0;
-    }
-    .join-btn {
-      background: #6bb341;
-      color: white;
-      padding: 6px 12px;
-      font-size: 0.8em;
-    }
-    .join-btn:hover {
-      background: #8bc34a;
-    }
-    .view-btn {
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      padding: 6px 12px;
-      font-size: 0.8em;
-    }
-    .view-btn:hover {
-      background: var(--vscode-button-hoverBackground);
     }
     .empty {
       color: var(--vscode-descriptionForeground);
@@ -138,10 +95,6 @@
 </head>
 <body>
   <div class="container">
-    <div class="controls">
-      <input id="search" type="search" placeholder="Search classes..." />
-      <button id="refresh">Refresh</button>
-    </div>
     <div id="list">
       {{classes_content}}
       {{empty_message}}
@@ -150,25 +103,13 @@
   <script nonce="{{nonce}}">
     const vscode = acquireVsCodeApi();
 
-    function joinClass(classId) {
-      vscode.postMessage({ command: 'joinLiveSession', sessionId: classId });
-    }
-
-    function viewRecording(classId) {
-      vscode.postMessage({ command: 'viewRecording', classId: classId });
-    }
-
-    document.getElementById('refresh').addEventListener('click', () => {
-      vscode.postMessage({ command: 'refresh' });
+    document.querySelectorAll('.class-header').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = el.getAttribute('data-class-id');
+        vscode.postMessage({ command: 'openLiveClass', classId: id });
+      });
     });
-
-    document.getElementById('search').addEventListener('input', (e) => {
-      vscode.postMessage({ command: 'filter', query: e.target.value || '' });
-    });
-
-    // Make functions available globally for onclick handlers
-    window.joinClass = joinClass;
-    window.viewRecording = viewRecording;
   </script>
 </body>
 </html>

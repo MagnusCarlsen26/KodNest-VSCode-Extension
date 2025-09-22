@@ -69,4 +69,14 @@ export interface Verdict {
   time: string;
 }
 
+export interface ClassInfo {
+  courseId: string;
+  courseName: string;
+  controlType: string;
+  totalSessions: number;
+  totalPresent: number;
+  totalAbsent: number;
+  attendancePercentage: number;
+}
+
 

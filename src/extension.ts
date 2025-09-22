@@ -35,7 +35,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Register live class sidebar webview
-  const liveClassProvider = new LiveClassWebviewProvider(context.extensionUri);
+  const liveClassProvider = new LiveClassWebviewProvider(context.extensionUri, context);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(LiveClassWebviewProvider.viewId, liveClassProvider)
   );
