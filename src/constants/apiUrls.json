@@ -9,6 +9,9 @@
 
     "getScores": "/assessment-service/api/v2/consumers/practices/{{moduleId}}/{{userId}}/questions?page=0&page_size=1000&tab=all",
 
-    "getClassInfo": "/utility-service/api/v2/attendance/courses/{{courseId}}/{{userId}}"
-
+    "getClassInfo": "/utility-service/api/v2/attendance/courses/{{courseId}}/{{userId}}",
+    "getClassModules": "/workflow-service/api/v2/modules/{{courseId}}",
+    "getClassTopics": "/workflow-service/api/v2/topics/{{courseId}}/{{moduleId}}",
+    "getClassSubTopics": "/workflow-service/api/v3/subtopics/{{courseId}}/{{moduleId}}/{{topicId}}/{{userId}}",
+    "getClassSubTopicNotes": "/workflow-service/api/v3/workflow/{{courseId}}/{{userId}}/{{moduleId}}/{{topicId}}/{{subTopicId}}"
 }

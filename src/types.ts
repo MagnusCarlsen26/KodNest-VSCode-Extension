@@ -79,4 +79,41 @@ export interface ClassInfo {
   attendancePercentage: number;
 }
 
+export interface ClassModule {
+  classModuleId: string;
+  classModuleName: string;
+}
 
+export interface ClassTopic {
+  classTopicId: string;
+  classTopicName: string;
+}
+
+export interface ClassSubtopic {
+  is_last: boolean;
+  is_submittable: boolean;
+  layout_id: string;
+  name: string;
+  priority: number;
+  process_id: string;
+  required: boolean;
+  role: string;
+  status: string;
+  submitted: boolean;
+  subtopic_id: string;
+  template_id: string;
+  type: string;
+  user_id: string;
+  workflow_id: string;
+}
+
+export interface ClassNotes {
+  notesContent: {
+    text: string;
+    assessmentId: string;
+  };
+  isSubmittable: boolean;
+  layoutId: string;
+  topicName: string;
+  type: string;
+}

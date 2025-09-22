@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getNonce, escapeHtml, getTemplatesRootPath } from '../utils';
-import { getClassInfo } from '../services/api/liveClass/getClassInfo';
+import { fetchLiveClassData } from '../utils/liveClassDataFetcher';
 import { ClassInfo } from '../types';
 
 export class LiveClassWebviewProvider implements vscode.WebviewViewProvider {
@@ -44,8 +44,10 @@ export class LiveClassWebviewProvider implements vscode.WebviewViewProvider {
   private async loadAndRenderClasses(): Promise<void> {
     try {
       const courseId = "dummyCourseId"; 
-      const liveClasses = await getClassInfo(this.context, courseId);
-      this.render(liveClasses);
+      const liveClassData = await fetchLiveClassData(this.context, courseId);
+      if (liveClassData) {
+        this.render(liveClassData.liveClasses);
+      }
     } catch (error) {
       vscode.window.showErrorMessage(`Failed to load live classes: ${error}`);
     }
