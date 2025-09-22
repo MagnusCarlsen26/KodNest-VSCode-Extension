@@ -42,8 +42,8 @@ export async function activate(context: vscode.ExtensionContext) {
     problemProvider.onDidChangeTreeData(() => webviewProvider.refresh())
   );
 
-  registerCommand(context, COMMAND.REFRESH_PROBLEMS, () => {
-    problemProvider.refresh();
+  registerCommand(context, COMMAND.REFRESH_PROBLEMS, async () => {
+    await problemProvider.reloadFromDisk(context.extensionPath);
     webviewProvider.refresh();
   });
 

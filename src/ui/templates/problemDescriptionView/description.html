@@ -12,6 +12,9 @@
   .difficulty-Easy { color: #6bb341; } /* Green */
   .difficulty-Medium { color: #d49a00; } /* Yellow */
   .difficulty-Hard { color: #e44258; } /* Red */
+  .status-solved { color: #6bb341; } /* Green */
+  .status-unsolved { color: #e44258; } /* Red */
+  .status-attempted { color: #d49a00; } /* Yellow */
   button {
     padding: 8px 16px;
     border-radius: 4px;
@@ -54,7 +57,7 @@
   <h1>{{title}}</h1>
   <div class="meta">
     Difficulty: <strong class="difficulty-{{difficulty}}">{{difficulty}}</strong>
-    {{status_meta}}
+    | Status: <strong class="status-{{status_class}}">{{status_meta}}</strong>
     <div>
       <a href="https://app.kodnest.com/my-learning/practice/{{module_id}}/section/{{section_id}}/question/{{problem_id}}/solve" class="problem-link">Link</a>
     </div>

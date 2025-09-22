@@ -9,6 +9,9 @@ import { getSubmissionByExecutionId } from '../services/api/getSubmissionByExecu
 import { VerdictPanel } from '../ui/verdictPanel';
 import { getQuestionContextById } from '../utils/lookup';
 import { getSubmissions } from '../services/api/getSubmissions';
+import { getScores } from '../services/api/getScores';
+import { updateScoresInDb } from '../services/db/updateScores';
+import { COMMAND } from '../utils/commands';
 
 
 export async function testSolution(context: vscode.ExtensionContext): Promise<void> {
@@ -109,6 +112,18 @@ async function sendTestSolution(
 
     // Open verdict panel on the right. If no split, create it and preserve left editor.
     await VerdictPanel.showOnRight(context.extensionUri, verdicts);
+
+    // After verdict resolution, refresh scores for this module and update local DB + sidebar
+    try {
+        const scores = await getScores(context, moduleId);
+        const result = await updateScoresInDb(context, moduleId, scores);
+        if (result.updated > 0) {
+            await vscode.commands.executeCommand(COMMAND.REFRESH_PROBLEMS);
+        }
+    } catch (e) {
+        // Non-fatal: show a message but do not block UX
+        console.warn('Unable to refresh scores after verdict:', e);
+    }
 
 }
 
