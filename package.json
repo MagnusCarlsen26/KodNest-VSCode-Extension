@@ -2,7 +2,7 @@
   "name": "KodNest-VSCode-Extension",
   "displayName": "KodNest",
   "description": "An extension to help KodNest users practice and submit coding problems directly from VS Code.",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "icon": "assets/icon.png",
   "keywords": [
     "kodnest",
@@ -89,19 +89,19 @@
         }
       ]
     }
-
   },
   "files": [
     "out/**",
     "assets/**"
   ],
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run copy:templates",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "copy:templates": "cp -R src/ui/templates out/ui/"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

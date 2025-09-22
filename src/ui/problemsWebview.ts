@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ProblemProvider } from '../problemProvider';
 import { Problem, Module } from '../types';
-import { getNonce, escapeHtml } from '../utils';
+import { getNonce, escapeHtml, getTemplatesRootPath } from '../utils';
 
 export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
   public static readonly viewId = 'kodnestProblems';
@@ -147,7 +147,8 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       // Read the HTML template
       const fs = await import('fs');
       const path = await import('path');
-      const templatePath = path.join(this.extensionUri.fsPath, 'src', 'ui', 'templates', 'sidebar', 'problems.html');
+      const templatesRoot = getTemplatesRootPath(this.extensionUri);
+      const templatePath = path.join(templatesRoot, 'sidebar', 'problems.html');
       let html = fs.readFileSync(templatePath, 'utf-8');
 
       // Replace placeholders
@@ -155,8 +156,8 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       html = html.replace(/{{query}}/g, escapeHtml(query));
 
       // Read component templates
-      const moduleTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'ui', 'templates', 'sidebar', 'module.html');
-      const problemTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'ui', 'templates', 'sidebar', 'problem.html');
+      const moduleTemplatePath = path.join(templatesRoot, 'sidebar', 'module.html');
+      const problemTemplatePath = path.join(templatesRoot, 'sidebar', 'problem.html');
 
       const moduleTemplate = fs.readFileSync(moduleTemplatePath, 'utf-8');
       const problemTemplate = fs.readFileSync(problemTemplatePath, 'utf-8');
@@ -194,7 +195,7 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
       }).join('');
 
       // Generate empty message
-      const emptyTemplatePath = path.join(this.extensionUri.fsPath, 'src', 'ui', 'templates', 'empty.html');
+      const emptyTemplatePath = path.join(templatesRoot, 'empty.html');
       const emptyTemplate = fs.readFileSync(emptyTemplatePath, 'utf-8');
       const emptyMessage = filteredModules.length === 0
         ? emptyTemplate.replace(/{{message}}/g, 'No problems found.')

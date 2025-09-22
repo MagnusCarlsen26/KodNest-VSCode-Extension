@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { Verdict } from '../types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getTemplatesRootPath } from '../utils';
 
 export class VerdictPanel {
   public static currentPanel: VerdictPanel | undefined;
@@ -79,7 +80,8 @@ export class VerdictPanel {
     //   time: 116
     // }
 
-    const htmlPath = path.join(this._extensionUri.fsPath, 'src', 'ui', 'templates', 'verdict.html');
+    const templatesRoot = getTemplatesRootPath(this._extensionUri);
+    const htmlPath = path.join(templatesRoot, 'verdict.html');
     let htmlContent = await fs.promises.readFile(htmlPath, 'utf8');
 
     const rows = this._verdicts.map((v, i) => {
