@@ -2,13 +2,11 @@
   <div class="class-title">{{class_title}}</div>
   <div class="class-details">
     <div class="session-info">
-      <span class="session-item">📚 Total: {{total_sessions}}</span>
-      <span class="session-item">✅ Present: {{total_present}}</span>
-      <span class="session-item"> absenteeism 🚫: {{total_absent}}</span>
+      <span class="session-item present-text">Present: {{total_present}}</span>
+      <span class="session-item absent-text">Absent: {{total_absent}}</span>
     </div>
     <div class="attendance-progress-container">
-      <div class="attendance-progress-bar" style="width: {{attendance_percentage}}%;"></div>
-      <span class="attendance-percentage">{{attendance_percentage}}% Attendance</span>
+      <div class="attendance-progress-bar"></div>
     </div>
   </div>
 </div>
