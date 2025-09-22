@@ -2,7 +2,7 @@
   "name": "KodNest-VSCode-Extension",
   "displayName": "KodNest",
   "description": "An extension to help KodNest users practice and submit coding problems directly from VS Code.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "icon": "assets/icon.png",
   "keywords": [
     "kodnest",
@@ -91,6 +91,10 @@
     }
 
   },
+  "files": [
+    "out/**",
+    "assets/**"
+  ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
