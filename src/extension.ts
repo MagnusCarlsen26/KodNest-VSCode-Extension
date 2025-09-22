@@ -18,7 +18,6 @@ import { showDescription } from './commands/showDescription';
 import { createEditorForProblem } from './commands/createEditorForProblem';
 import { getAllTokens } from './commands/getAllTokens';
 import { testSolution } from './commands/testSolution';
-import { openLiveClass, joinLiveSession, viewRecording } from './commands/liveClassCommands';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -68,10 +67,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // todo: later change this function name
   registerCommand(context, COMMAND.SUBMIT, () => testSolution(context));
 
-  registerCommand(context, COMMAND.OPEN_LIVE_CLASS, (classId: string) => openLiveClass(classId));
-  registerCommand(context, COMMAND.JOIN_LIVE_SESSION, (sessionId: string) => joinLiveSession(sessionId));
-  registerCommand(context, COMMAND.VIEW_RECORDING, (classId: string) => viewRecording(classId));
-  
   const codeLensProvider = new KodnestCodeLensProvider();
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider({ scheme: 'file', language: 'javascript' }, codeLensProvider)
