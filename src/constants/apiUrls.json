@@ -6,4 +6,6 @@
 
     "getSubmissions": "/practices/{{problemId}}/{{userId}}/submissions?practice_id={{moduleId}}&page=0&page_size=10",
     "getSubmissionByExecutionId": "/practices/submissions/{{executionId}}",
+
+    "getScores": "/practices/{{moduleId}}/{{userId}}/questions?page=0&page_size=1000&tab=all"
 }

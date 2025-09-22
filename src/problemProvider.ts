@@ -16,6 +16,7 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
         const fs = await import('fs');
         const path = await import('path');
         const problemsPath = path.join(extensionPath, 'database', 'allQuestionDescriptions.json');
+        // Always read fresh from disk to reflect any status updates
         const rawData = fs.readFileSync(problemsPath, 'utf-8');
         const jsonData = JSON.parse(rawData);
 
@@ -74,6 +75,12 @@ export class ProblemProvider implements vscode.TreeDataProvider<Problem | Module
 
             return module;
         });
+        this.refresh();
+    }
+
+    // Helper to force reload from disk and refresh consumers
+    async reloadFromDisk(extensionPath: string): Promise<void> {
+        await this.loadProblems(extensionPath);
         this.refresh();
     }
 
