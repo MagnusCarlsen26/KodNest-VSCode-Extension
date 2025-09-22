@@ -196,9 +196,24 @@ export class ProblemDescriptionPanel {
       html = html.replace(/{{nonce}}/g, nonce);
       html = html.replace(/{{title}}/g, escapeHtml(this._problem.title));
       html = html.replace(/{{difficulty}}/g, escapeHtml(String(this._problem.difficulty || 'Unknown')));
-      html = html.replace(/{{status_meta}}/g,
-        this._problem.status ? ` | Status: <strong>${escapeHtml(this._problem.status)}</strong>` : ''
-      );
+      
+      let statusClass = '';
+      let statusMetaContent = '';
+      if (this._problem.status) {
+        const normalizedStatus = this._problem.status.toLowerCase().trim();
+        if (normalizedStatus === 'solved' || normalizedStatus === 'completed' || normalizedStatus === 'done') {
+          statusClass = 'solved';
+        } else if (normalizedStatus === 'unsolved' || normalizedStatus === 'not_attempted' || normalizedStatus === 'na') {
+          statusClass = 'unsolved';
+        } else if (normalizedStatus === 'attempted') {
+          statusClass = 'attempted';
+        }
+        statusMetaContent = escapeHtml(this._problem.status);
+      }
+
+      html = html.replace(/{{status_meta}}/g, statusMetaContent);
+      html = html.replace(/{{status_class}}/g, statusClass);
+
       html = html.replace(/{{sample_buttons}}/g, '');
       html = html.replace(/{{samples_section}}/g, samplesSection);
       html = html.replace(/{{content}}/g, contentHtml);
