@@ -1,0 +1,3 @@
+1. kodnest db is so unoptimized
+2. kodnest api calls are  so unoptimized
+3. nothing is cached on client or server side
