@@ -42,6 +42,11 @@
           "id": "kodnestProblems",
           "name": "Kodnest Problems",
           "type": "webview"
+        },
+        {
+          "id": "liveClass",
+          "name": "Live Class",
+          "type": "webview"
         }
       ]
     },

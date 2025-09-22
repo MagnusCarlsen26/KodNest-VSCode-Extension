@@ -11,7 +11,10 @@ export const COMMAND = {
   GET_AUTH_TOKEN: 'kodnest.getAuthToken',
   SET_USER_ID: 'kodnest.setUserId',
   GET_USER_ID: 'kodnest.getUserId',
-  SHOW_MOCK_VERDICT: 'kodnest.showMockVerdict'
+  SHOW_MOCK_VERDICT: 'kodnest.showMockVerdict',
+  OPEN_LIVE_CLASS: 'kodnest.openLiveClass',
+  JOIN_LIVE_SESSION: 'kodnest.joinLiveSession',
+  VIEW_RECORDING: 'kodnest.viewRecording'
 } as const;
 
 export type Values<T> = T[keyof T];

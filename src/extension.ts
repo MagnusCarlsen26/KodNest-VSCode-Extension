@@ -5,6 +5,7 @@ import { ProblemProvider } from './problemProvider';
 import { KodnestCodeLensProvider } from './codeLensProvider';
 import { ProblemMeta } from './types';
 import { ProblemsWebviewProvider } from './ui/problemsWebview';
+import { LiveClassWebviewProvider } from './ui/liveClassWebview';
 
 import { askAuthTokenAndStore } from './services/auth/askAuthTokenAndStore';
 import { askUserIdAndStore } from './services/auth/askUserId';
@@ -17,6 +18,7 @@ import { showDescription } from './commands/showDescription';
 import { createEditorForProblem } from './commands/createEditorForProblem';
 import { getAllTokens } from './commands/getAllTokens';
 import { testSolution } from './commands/testSolution';
+import { openLiveClass, joinLiveSession, viewRecording } from './commands/liveClassCommands';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -31,6 +33,12 @@ export async function activate(context: vscode.ExtensionContext) {
   const webviewProvider = new ProblemsWebviewProvider(context.extensionUri, problemProvider);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(ProblemsWebviewProvider.viewId, webviewProvider)
+  );
+
+  // Register live class sidebar webview
+  const liveClassProvider = new LiveClassWebviewProvider(context.extensionUri);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(LiveClassWebviewProvider.viewId, liveClassProvider)
   );
 
   // Load problems, then refresh the webview with data
@@ -59,6 +67,10 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand(context, COMMAND.RUN, () => testSolution(context));
   // todo: later change this function name
   registerCommand(context, COMMAND.SUBMIT, () => testSolution(context));
+
+  registerCommand(context, COMMAND.OPEN_LIVE_CLASS, (classId: string) => openLiveClass(classId));
+  registerCommand(context, COMMAND.JOIN_LIVE_SESSION, (sessionId: string) => joinLiveSession(sessionId));
+  registerCommand(context, COMMAND.VIEW_RECORDING, (classId: string) => viewRecording(classId));
   
   const codeLensProvider = new KodnestCodeLensProvider();
   context.subscriptions.push(
