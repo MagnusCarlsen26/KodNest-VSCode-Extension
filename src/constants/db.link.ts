@@ -1,0 +1,2 @@
+export const GITHUB_DB_URL = 'https://raw.githubusercontent.com/MagnusCarlsen26/KodNest-VSCode-Extension/main/database/allQuestionDescriptions.json';
+export const DB_FILE_NAME = 'allQuestionDescriptions.json';
