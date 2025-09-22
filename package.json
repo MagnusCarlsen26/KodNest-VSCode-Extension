@@ -78,6 +78,22 @@
       {
         "command": "kodnest.showMockVerdict",
         "title": "Show Mock Verdict (UI Test)"
+      },
+      {
+        "command": "kodnest.setAuthToken",
+        "title": "Set Auth Token"
+      },
+      {
+        "command": "kodnest.getAuthToken",
+        "title": "Get Auth Token"
+      },
+      {
+        "command": "kodnest.setUserId",
+        "title": "Set User ID"
+      },
+      {
+        "command": "kodnest.getUserId",
+        "title": "Get User ID"
       }
     ],
     "menus": {
