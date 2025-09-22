@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 // while keeping the call sites typed.
 const { marked } = require('marked');
 const sanitizeHtml: any = require('sanitize-html');
-import { ProblemMeta } from './types';
-import { escapeHtml, getNonce } from './utils';
+import { ProblemMeta } from '../types';
+import { escapeHtml, getNonce } from '../utils';
 
 // Helper function to truncate long titles
 function truncateTitle(title: string, maxLength: number = 50): string {
@@ -166,7 +166,7 @@ export class ProblemDescriptionPanel {
       const path = require('path');
 
       // Read templates from src/templates to keep a single source of truth
-      const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'templates');
+      const templatesDir = path.join(this._extensionUri.fsPath, 'src', 'ui', 'templates');
       const templatePath = path.join(templatesDir, 'problemDescriptionView', 'description.html');
       const samplesTemplatePath = path.join(templatesDir, 'problemDescriptionView', 'samples.html');
       const sampleItemTemplatePath = path.join(templatesDir, 'problemDescriptionView', 'sample-item.html');

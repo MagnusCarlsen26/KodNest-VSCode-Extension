@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
-import { parseProblemFromActiveEditor } from '../../utils/problem';
-import { ProblemMeta } from '../../types';
-import apiUrls from '../../constants/apiUrls.json';
-import { getApiHeaders } from '../../constants/apiHeaders';
-import { convertToBase64 } from '../../utils/convertToFromBase64';
-import { getUserId } from '../auth/getUserId';
-import { getSubmissionByExecutionId } from './getSubmissionByExecutionId';
-import { VerdictPanel } from '../../verdictPanel';
-import { getQuestionContextById } from '../../utils/lookup';
-import { getSubmissions } from './getSubmissions';
+import { parseProblemFromActiveEditor } from '../utils/problemDescriptionPanel/parseProblemFromEditor';
+import { ProblemMeta } from '../types';
+import apiUrls from '../constants/apiUrls.json';
+import { getApiHeaders } from '../constants/apiHeaders';
+import { convertToBase64 } from '../utils/convertToFromBase64';
+import { getUserId } from '../services/auth/getUserId';
+import { getSubmissionByExecutionId } from '../services/api/getSubmissionByExecutionId';
+import { VerdictPanel } from '../ui/verdictPanel';
+import { getQuestionContextById } from '../utils/lookup';
+import { getSubmissions } from '../services/api/getSubmissions';
 
 
 export async function testSolution(context: vscode.ExtensionContext): Promise<void> {
