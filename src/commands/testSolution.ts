@@ -28,9 +28,7 @@ export async function testSolution(context: vscode.ExtensionContext): Promise<vo
         return;
     }
     const activeCode = editor.document.getText();
-    const activeName = activeProblem ? activeProblem.title : editor.document.fileName;
 
-    vscode.window.showInformationMessage(`Run clicked for ${activeName}`);
 
     // Merge with stored meta and DB lookup to avoid undefined IDs
     const storedMeta = context.workspaceState.get<any>('kodnest.lastProblemMeta');
@@ -111,7 +109,7 @@ async function sendTestSolution(
     const verdicts = await getSubmissionByExecutionId(context, submissionIds[0]);
 
     // Open verdict panel on the right. If no split, create it and preserve left editor.
-    await VerdictPanel.showOnRight(context.extensionUri, verdicts);
+    await VerdictPanel.showOnRight(context.extensionUri, verdicts, activeProblem.title);
 
     // After verdict resolution, refresh scores for this module and update local DB + sidebar
     try {

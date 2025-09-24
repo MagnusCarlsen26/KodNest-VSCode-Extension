@@ -10,28 +10,34 @@ export class VerdictPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
   private _verdicts: Verdict[] = [];
+  private _problemName: string;
 
-  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, verdicts: Verdict[]) {
+  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, verdicts: Verdict[], problemName: string) {
     this._panel = panel;
     this._extensionUri = extensionUri;
     this._verdicts = verdicts;
+    this._problemName = problemName;
 
     this._update();
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
   }
 
-  public static createOrShow(extensionUri: vscode.Uri, verdicts: Verdict[]): void {
+  public static createOrShow(extensionUri: vscode.Uri, verdicts: Verdict[], problemName?: string): void {
+    // Ensure we have a valid problem name - use the first verdict's problemName if available, otherwise use parameter
+    const finalProblemName = problemName && problemName.trim()
+      ? problemName.trim()
+      : verdicts[0]?.problemName || 'Unknown Problem';
     const column = vscode.ViewColumn.Two;
 
     if (VerdictPanel.currentPanel) {
       VerdictPanel.currentPanel._panel.reveal(column, true);
-      VerdictPanel.currentPanel.updateVerdicts(verdicts);
+      VerdictPanel.currentPanel.updateVerdicts(verdicts, finalProblemName);
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
       'kodnest.verdict',
-      'Verdict',
+      `Verdict: ${finalProblemName}`,
       column,
       {
         enableScripts: true,
@@ -40,17 +46,20 @@ export class VerdictPanel {
       }
     );
 
-    VerdictPanel.currentPanel = new VerdictPanel(panel, extensionUri, verdicts);
+    VerdictPanel.currentPanel = new VerdictPanel(panel, extensionUri, verdicts, finalProblemName);
   }
 
-  public static async showOnRight(extensionUri: vscode.Uri, verdicts: Verdict[]): Promise<void> {
+  public static async showOnRight(extensionUri: vscode.Uri, verdicts: Verdict[], problemName?: string): Promise<void> {
     // Do not force a split; always target ViewColumn.Two.
     // VS Code will create a second group if absent, or reuse the existing right group.
-    VerdictPanel.createOrShow(extensionUri, verdicts);
+    VerdictPanel.createOrShow(extensionUri, verdicts, problemName);
   }
 
-  public updateVerdicts(verdicts: Verdict[]): void {
+  public updateVerdicts(verdicts: Verdict[], problemName?: string): void {
     this._verdicts = verdicts;
+    if (problemName) {
+      this._problemName = problemName;
+    }
     this._update();
   }
 
@@ -69,16 +78,6 @@ export class VerdictPanel {
   }
 
   private async _getHtmlForWebview(): Promise<string> {
-
-    // {
-    //   expectedOutput: '[0, 1]\n',
-    //   compileOutput: '',
-    //   status: 'Wrong Answer',
-    //   stdin: '1\n',
-    //   stdout: '[]\n',
-    //   stderr: '',
-    //   time: 116
-    // }
 
     const templatesRoot = getTemplatesRootPath(this._extensionUri);
     const htmlPath = path.join(templatesRoot, 'verdict.html');
@@ -106,6 +105,7 @@ export class VerdictPanel {
     const overall = this._computeOverallStatus();
     const overallClass = overall === 'Accepted' ? 'ok' : 'fail';
 
+    htmlContent = htmlContent.replace('{{problemName}}', this._escape(this._problemName));
     htmlContent = htmlContent.replace('{{overallClass}}', overallClass);
     htmlContent = htmlContent.replace('{{overallStatus}}', overall);
     htmlContent = htmlContent.replace('{{verdictRows}}', rows);

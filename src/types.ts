@@ -67,6 +67,7 @@ export interface Verdict {
   stdout: string;
   stderr: string;
   time: string;
+  problemName?: string;
 }
 
 export interface ClassInfo {
