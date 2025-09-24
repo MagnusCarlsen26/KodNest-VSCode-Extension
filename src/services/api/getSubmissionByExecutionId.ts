@@ -29,8 +29,8 @@ export async function getSubmissionByExecutionId(
 
 export async function retryApiCall<T>(
     fn: () => Promise<T>,
-    retries: number = 3,
-    delay: number = 10000 // milliseconds
+    retries: number = 10,
+    delay: number = 1000 // milliseconds
 ): Promise<T> {
 
     console.log("Retrying API call. Retries left:", delay);

@@ -2,7 +2,7 @@
   "name": "KodNest-VSCode-Extension",
   "displayName": "KodNest",
   "description": "An extension to help KodNest users practice and submit coding problems directly from VS Code.",
-  "version": "0.3.0",
+  "version": "0.4.1",
   "icon": "assets/icon.png",
   "keywords": [
     "kodnest",
@@ -13,7 +13,7 @@
   ],
   "publisher": "KhushalSindhav",
   "engines": {
-    "vscode": "^1.104.0"
+    "vscode": "^1.95.0"
   },
   "categories": [
     "Programming Languages",
@@ -127,9 +127,9 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "@types/vscode": "^1.104.0",
+    "@types/vscode": "^1.95.0",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
-    "@typescript-eslint/parser": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",g
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.34.0",
