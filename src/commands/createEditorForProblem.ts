@@ -75,11 +75,6 @@ async function getStorageUri(
         throw new Error('Neither workspace nor global storage is available.');
     }
 
-    // Informative message when falling back to global storage (no workspace)
-    if (!context.storageUri) {
-        vscode.window.showInformationMessage(`Workspace storage not available. Using global storage at: ${baseStorageUri.fsPath}`);
-    }
-
     const solutionsDir = vscode.Uri.joinPath(baseStorageUri, 'solutions');
     const fileUri = vscode.Uri.joinPath(solutionsDir, fileName);
 

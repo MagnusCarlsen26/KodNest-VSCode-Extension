@@ -50,7 +50,7 @@ export class ProblemDescriptionPanel {
     const panel = vscode.window.createWebviewPanel(
       'kodnest.problemDescription',
       truncateTitle(problem.title),
-      column || vscode.ViewColumn.One,
+      vscode.ViewColumn.One, // Always open in ViewColumn.One initially
       {
         enableScripts: true,
         localResourceRoots: [extensionUri],
@@ -102,31 +102,27 @@ export class ProblemDescriptionPanel {
       // Close the sidebar
       await vscode.commands.executeCommand('workbench.action.closeSidebar');
 
-      // Create the editor file in the left column
+      // Create the editor file in ViewColumn.One (left column)
       await vscode.commands.executeCommand('kodnest.createEditor', this._problem);
 
-      // Wait a bit for the editor to be created
+      // Wait a bit for the editor to be created and active
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Position the description panel in the right column (ViewColumn.Two)
       const currentPanel = ProblemDescriptionPanel.currentPanel;
       if (currentPanel) {
-        // First ensure we're in a split view
-        await vscode.commands.executeCommand('workbench.action.splitEditor');
+        // Reveal the description panel in ViewColumn.Two, which will implicitly create a split if needed.
+        currentPanel._panel.reveal(vscode.ViewColumn.Two, true);
 
-        // Wait a moment for the split to be created
+        // Wait a moment for the split to be created and panel moved
         await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Move the description panel to the second editor group (right side)
-        const column = vscode.ViewColumn.Two;
-        currentPanel._panel.reveal(column, true);
-
-        // Show helpful message about adjusting the split ratio
-        await new Promise(resolve => setTimeout(resolve, 500));
-        vscode.window.showInformationMessage(
-          `💡 Tip: Adjust the split ratio to 2:1 by dragging the border between panels. Code should be wider than description.`
-        );
       }
+
+      // Show helpful message about adjusting the split ratio
+      await new Promise(resolve => setTimeout(resolve, 500));
+      vscode.window.showInformationMessage(
+        `💡 Tip: Adjust the split ratio to 2:1 by dragging the border between panels. Code should be wider than description.`
+      );
     } catch (error) {
       vscode.window.showErrorMessage(`Failed to open in editor with split screen: ${error}`);
     }

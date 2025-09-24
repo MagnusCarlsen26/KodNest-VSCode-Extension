@@ -53,7 +53,6 @@ export class LiveClassWebviewProvider implements vscode.WebviewViewProvider {
 
   private async render(filteredClasses: ClassInfo[]): Promise<void> {
     if (!this.view) {
-      vscode.window.showInformationMessage('Live Class Webview: View not yet initialized.');
       return;
     }
 

@@ -106,7 +106,6 @@ export class ProblemsWebviewProvider implements vscode.WebviewViewProvider {
 
   private async render(query: string = ''): Promise<void> {
     if (!this.view) {
-      vscode.window.showInformationMessage('Problems Webview: View not yet initialized.');
       return;
     }
 
