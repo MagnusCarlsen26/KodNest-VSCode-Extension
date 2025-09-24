@@ -1,8 +1,4 @@
 1. refresh db functionality.
-2. update number of solved questions
 3. show problem name in verdict panel
 4. somehow get number of unique users
-5. somehow json file in github should have status=Not attempted other wise people will see my solutsio
-6. what is that id in getClassesId url ?
-7. AI Chat ?
-8. extension to sort companies from high to low package ? -- > more custom filters?
+9. ease userId and auth token.
