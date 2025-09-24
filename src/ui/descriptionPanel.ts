@@ -21,6 +21,11 @@ export class ProblemDescriptionPanel {
   private _disposables: vscode.Disposable[] = [];
   private _problem: ProblemMeta;
 
+  // Allow serializer to revive an existing webview panel instance
+  public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, problem: ProblemMeta): void {
+    ProblemDescriptionPanel.currentPanel = new ProblemDescriptionPanel(panel, extensionUri, problem);
+  }
+
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, problem: ProblemMeta) {
     this._panel = panel;
     this._extensionUri = extensionUri;

@@ -6,6 +6,7 @@ import { KodnestCodeLensProvider } from './codeLensProvider';
 import { ProblemMeta } from './types';
 import { ProblemsWebviewProvider } from './ui/problemsWebview';
 import { LiveClassWebviewProvider } from './ui/liveClassWebview';
+import { registerProblemDescriptionPanelSerializer } from './utils/webviewSerializer';
 
 import { askAuthTokenAndStore } from './services/auth/askAuthTokenAndStore';
 import { askUserIdAndStore } from './services/auth/askUserId';
@@ -71,6 +72,8 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider({ scheme: 'file', language: 'javascript' }, codeLensProvider)
   );
+
+  registerProblemDescriptionPanelSerializer(context, context.extensionUri);
 }
 
 export function deactivate() {}
