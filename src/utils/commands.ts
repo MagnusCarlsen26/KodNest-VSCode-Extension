@@ -12,6 +12,9 @@ export const COMMAND = {
   SET_USER_ID: 'kodnest.setUserId',
   GET_USER_ID: 'kodnest.getUserId',
   SHOW_MOCK_VERDICT: 'kodnest.showMockVerdict',
+  SET_FETCH_REQUEST_AUTH: 'kodnest.setFetchRequestAuth',
+  DELETE_AUTH_TOKEN: 'kodnest.deleteAuthToken',
+  DELETE_USER_ID: 'kodnest.deleteUserId',
 } as const;
 
 export type Values<T> = T[keyof T];

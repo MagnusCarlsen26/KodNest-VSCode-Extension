@@ -8,7 +8,12 @@ import { ProblemsWebviewProvider } from './ui/problemsWebview';
 import { LiveClassWebviewProvider } from './ui/liveClassWebview';
 import { registerProblemDescriptionPanelSerializer } from './utils/webviewSerializer';
 
-import { askAuthTokenAndStore } from './services/auth/askAuthTokenAndStore';
+import {
+  askAuthTokenAndStore,
+  askFetchRequestAndStore,
+  deleteAuthToken,
+  deleteUserId
+} from './services/auth/askAuthTokenAndStore';
 import { askUserIdAndStore } from './services/auth/askUserId';
 import { getAuthToken } from './services/auth/getAuthToken';
 import { getUserId } from './services/auth/getUserId';
@@ -59,6 +64,9 @@ export async function activate(context: vscode.ExtensionContext) {
   registerCommand(context, COMMAND.GET_AUTH_TOKEN, () => getAuthToken(context));
   registerCommand(context, COMMAND.SET_USER_ID, () => askUserIdAndStore(context));
   registerCommand(context, COMMAND.GET_USER_ID, () => getUserId(context));
+  registerCommand(context, COMMAND.SET_FETCH_REQUEST_AUTH, () => askFetchRequestAndStore(context));
+  registerCommand(context, COMMAND.DELETE_AUTH_TOKEN, () => deleteAuthToken(context));
+  registerCommand(context, COMMAND.DELETE_USER_ID, () => deleteUserId(context));
 
   registerCommand(context, COMMAND.OPEN_PROBLEM, (problemLike: unknown) => openProblem(problemLike,context, problemProvider));
   registerCommand(context, COMMAND.CREATE_EDITOR, (problem: ProblemMeta) => createEditorForProblem(context, problem));
